@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codex Zero Trust Watcher</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        bg: { primary: '#0f172a', secondary: '#1e293b', tertiary: '#334155' },
+        accent: { green: '#22c55e', red: '#ef4444', yellow: '#eab308', blue: '#3b82f6', purple: '#a855f7', cyan: '#06b6d4' }
+      }
+    }
+  }
+}
+</script>
+<style>
+  @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+  .feed-enter { animation: slideIn 0.3s ease-out; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #1e293b; }
+  ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+  body { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace; }
+</style>
+</head>
+<body class="bg-bg-primary text-gray-200 min-h-screen">
+
+<!-- Top Bar -->
+<header class="bg-bg-secondary border-b border-gray-700 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+  <div class="flex items-center gap-3">
+    <div class="w-2 h-2 rounded-full bg-accent-green pulse-dot" id="status-dot"></div>
+    <h1 class="text-lg font-bold text-white">Codex Zero Trust Watcher</h1>
+  </div>
+  <div class="flex items-center gap-6 text-sm">
+    <div class="flex flex-col items-center">
+      <span class="text-gray-400 text-xs">Sessions</span>
+      <span class="text-white font-bold text-lg" id="stat-sessions">-</span>
+    </div>
+    <div class="flex flex-col items-center">
+      <span class="text-gray-400 text-xs">Events</span>
+      <span class="text-white font-bold text-lg" id="stat-events">-</span>
+    </div>
+    <div class="flex flex-col items-center">
+      <span class="text-gray-400 text-xs">Alerts</span>
+      <span class="text-accent-yellow font-bold text-lg" id="stat-alerts">-</span>
+    </div>
+    <div class="flex flex-col items-center">
+      <span class="text-gray-400 text-xs">Blocked</span>
+      <span class="text-accent-red font-bold text-lg" id="stat-blocked">-</span>
+    </div>
+    <div class="flex flex-col items-center">
+      <span class="text-gray-400 text-xs">Last Event</span>
+      <span class="text-gray-300 text-xs" id="stat-last-event">-</span>
+    </div>
+  </div>
+</header>
+
+<main class="p-4 grid grid-cols-12 gap-4">
+
+  <!-- Left Column: Live Feed + Blocked -->
+  <div class="col-span-12 lg:col-span-5 flex flex-col gap-4">
+
+    <!-- Live Feed -->
+    <section class="bg-bg-secondary rounded-lg border border-gray-700 flex flex-col" style="height: 420px;">
+      <div class="px-4 py-2 border-b border-gray-700 flex justify-between items-center">
+        <h2 class="text-sm font-semibold text-gray-300">Live Feed</h2>
+        <span class="text-xs text-gray-500" id="feed-count">0 events</span>
+      </div>
+      <div class="flex-1 overflow-y-auto p-2 space-y-1" id="live-feed">
+        <div class="text-gray-500 text-xs text-center py-8">Waiting for events...</div>
+      </div>
+    </section>
+
+    <!-- Blocked Actions -->
+    <section class="bg-bg-secondary rounded-lg border border-gray-700 flex flex-col" style="height: 250px;">
+      <div class="px-4 py-2 border-b border-gray-700">
+        <h2 class="text-sm font-semibold text-accent-red">Blocked Actions</h2>
+      </div>
+      <div class="flex-1 overflow-y-auto" id="blocked-log">
+        <table class="w-full text-xs">
+          <thead class="sticky top-0 bg-bg-secondary">
+            <tr class="text-gray-400">
+              <th class="px-3 py-1 text-left">Time</th>
+              <th class="px-3 py-1 text-left">Tool</th>
+              <th class="px-3 py-1 text-left">Decision</th>
+              <th class="px-3 py-1 text-left">Reason</th>
+            </tr>
+          </thead>
+          <tbody id="blocked-tbody"></tbody>
+        </table>
+        <div class="text-gray-500 text-xs text-center py-4" id="blocked-empty">No blocked actions</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Middle Column: Charts -->
+  <div class="col-span-12 lg:col-span-4 flex flex-col gap-4">
+
+    <!-- Tool Usage Chart -->
+    <section class="bg-bg-secondary rounded-lg border border-gray-700 p-4" style="height: 300px;">
+      <h2 class="text-sm font-semibold text-gray-300 mb-2">Tool Usage</h2>
+      <div class="relative" style="height: 240px;">
+        <canvas id="tool-chart"></canvas>
+      </div>
+    </section>
+
+    <!-- Activity Heatmap -->
+    <section class="bg-bg-secondary rounded-lg border border-gray-700 p-4" style="height: 200px;">
+      <h2 class="text-sm font-semibold text-gray-300 mb-2">Activity Timeline</h2>
+      <div class="relative" style="height: 140px;">
+        <canvas id="activity-chart"></canvas>
+      </div>
+    </section>
+
+    <!-- Agent Registry -->
+    <section class="bg-bg-secondary rounded-lg border border-gray-700 flex flex-col" style="height: 170px;">
+      <div class="px-4 py-2 border-b border-gray-700">
+        <h2 class="text-sm font-semibold text-accent-purple">Agent Registry</h2>
+      </div>
+      <div class="flex-1 overflow-y-auto">
+        <table class="w-full text-xs">
+          <thead class="sticky top-0 bg-bg-secondary">
+            <tr class="text-gray-400">
+              <th class="px-3 py-1 text-left">ID</th>
+              <th class="px-3 py-1 text-left">Type</th>
+              <th class="px-3 py-1 text-left">Session</th>
+              <th class="px-3 py-1 text-left">Time</th>
+            </tr>
+          </thead>
+          <tbody id="agent-tbody"></tbody>
+        </table>
+        <div class="text-gray-500 text-xs text-center py-4" id="agent-empty">No agents spawned</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Right Column: Alerts -->
+  <div class="col-span-12 lg:col-span-3 flex flex-col gap-4">
+
+    <!-- Security Alerts -->
+    <section class="bg-bg-secondary rounded-lg border border-gray-700 flex flex-col" style="height: 690px;">
+      <div class="px-4 py-2 border-b border-gray-700 flex justify-between items-center">
+        <h2 class="text-sm font-semibold text-accent-yellow">Security Alerts</h2>
+        <span class="text-xs text-gray-500" id="alert-count">0</span>
+      </div>
+      <div class="flex-1 overflow-y-auto p-2 space-y-2" id="alerts-panel">
+        <div class="text-gray-500 text-xs text-center py-8">No alerts</div>
+      </div>
+    </section>
+  </div>
+
+</main>
+
+<script>
+// --- State ---
+let allEvents = [];
+let allAlerts = [];
+let toolChart = null;
+let activityChart = null;
+
+// --- Color maps ---
+const toolColors = {
+  Bash: '#ef4444', Read: '#3b82f6', Write: '#22c55e', Edit: '#eab308',
+  Grep: '#a855f7', Glob: '#06b6d4', Task: '#f97316', TaskCreate: '#6366f1',
+  TaskUpdate: '#ec4899', EnterPlanMode: '#14b8a6', ExitPlanMode: '#64748b',
+  AskUserQuestion: '#8b5cf6', Skill: '#f59e0b', NotebookEdit: '#10b981'
+};
+const severityColors = {
+  critical: 'border-red-500 bg-red-500/10',
+  high: 'border-orange-500 bg-orange-500/10',
+  warning: 'border-yellow-500 bg-yellow-500/10',
+  info: 'border-blue-500 bg-blue-500/10'
+};
+const severityDots = {
+  critical: 'bg-red-500', high: 'bg-orange-500', warning: 'bg-yellow-500', info: 'bg-blue-500'
+};
+const eventColors = {
+  tool_use: 'text-accent-green',
+  tool_blocked: 'text-accent-red',
+  session_start: 'text-accent-blue',
+  agent_start: 'text-accent-purple'
+};
+
+// --- Formatters ---
+function shortTime(ts) {
+  if (!ts) return '-';
+  try {
+    const d = new Date(ts);
+    return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  } catch { return ts.slice(11, 19); }
+}
+function relativeTime(ts) {
+  if (!ts) return '-';
+  try {
+    const d = new Date(ts);
+    const diff = (Date.now() - d.getTime()) / 1000;
+    if (diff < 60) return `${Math.round(diff)}s ago`;
+    if (diff < 3600) return `${Math.round(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.round(diff / 3600)}h ago`;
+    return `${Math.round(diff / 86400)}d ago`;
+  } catch { return ts; }
+}
+function truncate(s, n) { return s && s.length > n ? s.slice(0, n) + '...' : (s || ''); }
+
+// --- Render Functions ---
+function renderFeedItem(event) {
+  const el = document.createElement('div');
+  el.className = `feed-enter px-2 py-1 rounded text-xs flex items-start gap-2 hover:bg-bg-tertiary`;
+  const colorClass = eventColors[event.event] || 'text-gray-400';
+  const icon = event.event === 'tool_blocked' ? '&#x26D4;' :
+               event.event === 'tool_use' ? '&#x25B6;' :
+               event.event === 'session_start' ? '&#x1F511;' :
+               event.event === 'agent_start' ? '&#x1F916;' : '&#x25CF;';
+  const detail = event.detail || event.tool || event.event;
+  el.innerHTML = `
+    <span class="text-gray-500 whitespace-nowrap">${shortTime(event.timestamp)}</span>
+    <span class="${colorClass}">${icon}</span>
+    <span class="${colorClass} font-semibold whitespace-nowrap">${event.tool || event.event}</span>
+    <span class="text-gray-400 truncate">${truncate(detail, 80)}</span>
+  `;
+  return el;
+}
+
+function renderAlert(alert) {
+  const el = document.createElement('div');
+  const colorClass = severityColors[alert.severity] || severityColors.info;
+  const dotClass = severityDots[alert.severity] || severityDots.info;
+  el.className = `feed-enter p-3 rounded border-l-2 ${colorClass}`;
+  el.innerHTML = `
+    <div class="flex items-center gap-2 mb-1">
+      <span class="w-2 h-2 rounded-full ${dotClass}"></span>
+      <span class="text-xs font-bold uppercase text-gray-300">${alert.severity}</span>
+      <span class="text-xs text-gray-500 ml-auto">${shortTime(alert.timestamp)}</span>
+    </div>
+    <div class="text-sm font-semibold text-white">${alert.title}</div>
+    <div class="text-xs text-gray-400 mt-1">${alert.description}</div>
+  `;
+  return el;
+}
+
+function renderBlockedRow(event) {
+  const tr = document.createElement('tr');
+  tr.className = 'border-t border-gray-700/50 hover:bg-bg-tertiary';
+  const decColor = event.decision === 'deny' ? 'text-accent-red' : 'text-accent-yellow';
+  tr.innerHTML = `
+    <td class="px-3 py-1.5 text-gray-400">${shortTime(event.timestamp)}</td>
+    <td class="px-3 py-1.5 text-white">${event.tool || '-'}</td>
+    <td class="px-3 py-1.5 ${decColor} font-semibold">${event.decision || '-'}</td>
+    <td class="px-3 py-1.5 text-gray-400">${truncate(event.reason || '', 60)}</td>
+  `;
+  return tr;
+}
+
+function renderAgentRow(agent) {
+  const tr = document.createElement('tr');
+  tr.className = 'border-t border-gray-700/50 hover:bg-bg-tertiary';
+  tr.innerHTML = `
+    <td class="px-3 py-1.5 text-accent-purple font-mono">${(agent.agent_id || '').slice(0, 8)}</td>
+    <td class="px-3 py-1.5 text-white">${agent.agent_type || '-'}</td>
+    <td class="px-3 py-1.5 text-gray-400 font-mono">${(agent.session_id || '').slice(0, 8)}</td>
+    <td class="px-3 py-1.5 text-gray-400">${shortTime(agent.timestamp)}</td>
+  `;
+  return tr;
+}
+
+// --- Charts ---
+function initToolChart() {
+  const ctx = document.getElementById('tool-chart').getContext('2d');
+  toolChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 0 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '60%',
+      plugins: {
+        legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11, family: 'monospace' }, padding: 8 } }
+      }
+    }
+  });
+}
+
+function initActivityChart() {
+  const ctx = document.getElementById('activity-chart').getContext('2d');
+  activityChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: '#3b82f680', borderColor: '#3b82f6', borderWidth: 1 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { ticks: { color: '#64748b', font: { size: 9 } }, grid: { color: '#1e293b' } },
+        y: { ticks: { color: '#64748b', font: { size: 9 } }, grid: { color: '#1e293b' }, beginAtZero: true }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+function updateToolChart(toolCounts) {
+  if (!toolChart) return;
+  const sorted = Object.entries(toolCounts).sort((a, b) => b[1] - a[1]);
+  toolChart.data.labels = sorted.map(([k]) => k);
+  toolChart.data.datasets[0].data = sorted.map(([, v]) => v);
+  toolChart.data.datasets[0].backgroundColor = sorted.map(([k]) => toolColors[k] || '#64748b');
+  toolChart.update('none');
+}
+
+function updateActivityChart(hourly) {
+  if (!activityChart) return;
+  const entries = Object.entries(hourly).slice(-24);
+  activityChart.data.labels = entries.map(([h]) => h.slice(11) + ':00');
+  activityChart.data.datasets[0].data = entries.map(([, v]) => v);
+  activityChart.update('none');
+}
+
+// --- Full refresh from API ---
+async function refreshAll() {
+  try {
+    const [statsRes, alertsRes, eventsRes] = await Promise.all([
+      fetch('/api/stats'), fetch('/api/alerts'), fetch('/api/events?offset=0&limit=500')
+    ]);
+    const stats = await statsRes.json();
+    const alertsData = await alertsRes.json();
+    const eventsData = await eventsRes.json();
+
+    // Top bar
+    document.getElementById('stat-sessions').textContent = stats.session_count;
+    document.getElementById('stat-events').textContent = stats.total_events;
+    document.getElementById('stat-alerts').textContent = stats.active_alerts;
+    document.getElementById('stat-blocked').textContent = stats.blocked_count;
+    document.getElementById('stat-last-event').textContent = relativeTime(stats.last_event);
+
+    // Charts
+    updateToolChart(stats.tool_counts);
+    updateActivityChart(stats.hourly_activity);
+
+    // Full feed rebuild (only on first load)
+    if (allEvents.length === 0 && eventsData.events.length > 0) {
+      allEvents = eventsData.events;
+      const feed = document.getElementById('live-feed');
+      feed.innerHTML = '';
+      const recent = allEvents.slice(-100);
+      for (const evt of recent) {
+        feed.appendChild(renderFeedItem(evt));
+      }
+      feed.scrollTop = feed.scrollHeight;
+      document.getElementById('feed-count').textContent = `${allEvents.length} events`;
+    }
+
+    // Alerts
+    if (alertsData.alerts.length > 0) {
+      allAlerts = alertsData.alerts;
+      const panel = document.getElementById('alerts-panel');
+      panel.innerHTML = '';
+      for (const alert of allAlerts.slice().reverse()) {
+        panel.appendChild(renderAlert(alert));
+      }
+      document.getElementById('alert-count').textContent = allAlerts.length;
+    }
+
+    // Blocked actions
+    const blocked = eventsData.events.filter(e => e.event === 'tool_blocked');
+    if (blocked.length > 0) {
+      document.getElementById('blocked-empty').style.display = 'none';
+      const tbody = document.getElementById('blocked-tbody');
+      tbody.innerHTML = '';
+      for (const evt of blocked.reverse()) {
+        tbody.appendChild(renderBlockedRow(evt));
+      }
+    }
+
+    // Agents
+    if (stats.agents.length > 0) {
+      document.getElementById('agent-empty').style.display = 'none';
+      const tbody = document.getElementById('agent-tbody');
+      tbody.innerHTML = '';
+      for (const agent of stats.agents) {
+        tbody.appendChild(renderAgentRow(agent));
+      }
+    }
+  } catch (err) {
+    console.error('Refresh failed:', err);
+    document.getElementById('status-dot').className = 'w-2 h-2 rounded-full bg-accent-red pulse-dot';
+  }
+}
+
+// --- SSE Real-time ---
+function connectSSE() {
+  const source = new EventSource('/api/stream');
+
+  source.addEventListener('connected', () => {
+    document.getElementById('status-dot').className = 'w-2 h-2 rounded-full bg-accent-green pulse-dot';
+  });
+
+  source.addEventListener('audit', (e) => {
+    try {
+      const data = JSON.parse(e.data);
+
+      if (data.event) {
+        allEvents.push(data.event);
+        const feed = document.getElementById('live-feed');
+        if (allEvents.length === 1) feed.innerHTML = '';
+        feed.appendChild(renderFeedItem(data.event));
+        while (feed.children.length > 200) feed.removeChild(feed.firstChild);
+        feed.scrollTop = feed.scrollHeight;
+        document.getElementById('feed-count').textContent = `${allEvents.length} events`;
+
+        if (data.event.event === 'tool_blocked') {
+          document.getElementById('blocked-empty').style.display = 'none';
+          const tbody = document.getElementById('blocked-tbody');
+          tbody.insertBefore(renderBlockedRow(data.event), tbody.firstChild);
+        }
+
+        if (data.event.event === 'agent_start') {
+          document.getElementById('agent-empty').style.display = 'none';
+          const tbody = document.getElementById('agent-tbody');
+          tbody.appendChild(renderAgentRow(data.event));
+        }
+
+        document.getElementById('stat-events').textContent = allEvents.length;
+        document.getElementById('stat-last-event').textContent = relativeTime(data.event.timestamp);
+      }
+
+      if (data.alerts && data.alerts.length > 0) {
+        const panel = document.getElementById('alerts-panel');
+        if (allAlerts.length === 0) panel.innerHTML = '';
+        for (const alert of data.alerts) {
+          allAlerts.push(alert);
+          panel.insertBefore(renderAlert(alert), panel.firstChild);
+        }
+        document.getElementById('alert-count').textContent = allAlerts.length;
+        document.getElementById('stat-alerts').textContent = allAlerts.length;
+      }
+    } catch (err) {
+      console.error('SSE parse error:', err);
+    }
+  });
+
+  source.onerror = () => {
+    document.getElementById('status-dot').className = 'w-2 h-2 rounded-full bg-accent-red pulse-dot';
+    source.close();
+    setTimeout(connectSSE, 3000);
+  };
+}
+
+// --- Init ---
+document.addEventListener('DOMContentLoaded', () => {
+  initToolChart();
+  initActivityChart();
+  refreshAll();
+  connectSSE();
+  setInterval(async () => {
+    try {
+      const res = await fetch('/api/stats');
+      const stats = await res.json();
+      document.getElementById('stat-sessions').textContent = stats.session_count;
+      document.getElementById('stat-events').textContent = stats.total_events;
+      document.getElementById('stat-alerts').textContent = stats.active_alerts;
+      document.getElementById('stat-blocked').textContent = stats.blocked_count;
+      document.getElementById('stat-last-event').textContent = relativeTime(stats.last_event);
+      updateToolChart(stats.tool_counts);
+      updateActivityChart(stats.hourly_activity);
+      if (stats.agents.length > 0) {
+        document.getElementById('agent-empty').style.display = 'none';
+        const tbody = document.getElementById('agent-tbody');
+        tbody.innerHTML = '';
+        for (const agent of stats.agents) {
+          tbody.appendChild(renderAgentRow(agent));
+        }
+      }
+    } catch {}
+  }, 5000);
+});
+</script>
+</body>
+</html>
