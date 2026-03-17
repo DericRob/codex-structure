@@ -11,7 +11,6 @@
 
 - See `user-profile.md` for the user background, role, business goals, and experience level
 - See `feedback-communication-style.md` for communication rules
-- See `priority-project-business-goal.md` for the revenue target and entrepreneurship guidance context
 
 ## User Preferences
 

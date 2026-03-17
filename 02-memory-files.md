@@ -35,7 +35,6 @@ That includes:
 - `MEMORY.md`
 - `user-profile.md`
 - `feedback-communication-style.md`
-- `priority-project-business-goal.md`
 - `zero-trust-agentic-ai.md`
 - `docker-headless-environment-notes.md`
 - `multi-tenant-platform-notes.md`
