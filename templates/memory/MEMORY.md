@@ -1,18 +1,17 @@
 # Auto Memory
 
-## Rafi Assistant
+## Priority Project
 
-- Project historically located at `/Users/lwx3/Documents/Rafi/rafi_assistant`
-- See `rafi-docker-headless.md` for Docker and headless-environment pitfalls
+- Project-specific implementation notes are stored in the companion memory files in this folder
+- See `docker-headless-environment-notes.md` for Docker and headless-environment pitfalls
 - Config loader merges env vars via `_ENV_OVERRIDES`; clear them in unit tests that run alongside dotenv-loading integration tests
-- Supabase project ref noted in prior environment: `vxlinofuwrdapsflhvop`
 - MCP server note: stdio transport should use synchronous stdout writes instead of async write-pipe assumptions
 
 ## User Profile
 
-- See `user-profile.md` for D.Rob's background, role, business goals, and experience level
+- See `user-profile.md` for the user background, role, business goals, and experience level
 - See `feedback-communication-style.md` for communication rules
-- See `project-rafi-business-goal.md` for the revenue target and entrepreneurship guidance context
+- See `priority-project-business-goal.md` for the revenue target and entrepreneurship guidance context
 
 ## User Preferences
 
@@ -32,8 +31,8 @@
 
 ## Other Notes
 
-- See `antigravity-rafi-migration.md` for the Rafi-to-Antigravity migration mapping
-- See `rafi-multi-tenant-platform.md` for the multi-tenant platform architecture and status
-- See `superpowers-parry-install.md` for Superpowers and Parry setup notes
+- See `platform-migration-notes.md` for the migration mapping between agent platforms
+- See `multi-tenant-platform-notes.md` for the multi-tenant platform architecture and status
+- See `superpowers-parry-install.md` for optional tooling setup notes
 - See `vibe-coding-improvements.md` and `skill-architecture-analysis.md` for workflow and skill architecture guidance
 - See `reminder-electric-bill-april-2026.md` for the dated reminder record

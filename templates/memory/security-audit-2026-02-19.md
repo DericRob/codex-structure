@@ -4,9 +4,9 @@ Credential rotation remained a critical cross-project action item.
 
 Highlighted exposures included:
 
-- IntentionAI: SMTP, MongoDB, admin and Cloudflare keys
-- SistersPromise: MongoDB, JWT, Square, reCAPTCHA, SMTP, Google Cloud key
-- Arabis: Google Cloud key, Twilio, FTP/SSH, Vercel token
-- Glomall: Braintree production credentials hardcoded in code
+- cloud service credentials committed to source control
+- database and admin credentials exposed in application config
+- third-party API keys present in deploy or app code
+- production payment credentials hardcoded in code
 
 Priority actions included credential rotation, auth restoration, HTTPS enforcement, rate limiting, and git history cleanup where secrets were committed.

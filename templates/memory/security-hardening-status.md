@@ -15,7 +15,7 @@
 
 ## Status
 
-Committed fixes were recorded for Glomall, Arabis, SistersPromise, and IntentionAI.
+Committed fixes were recorded across multiple projects.
 
 Manual work still pending:
 

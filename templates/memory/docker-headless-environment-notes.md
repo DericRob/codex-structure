@@ -1,4 +1,4 @@
-# Rafi Docker and Headless Environment Issues
+# Docker and Headless Environment Issues
 
 ## Known pitfalls
 

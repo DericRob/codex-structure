@@ -26,6 +26,6 @@ type: user
 
 ## Business Goals
 
-- Priority project: Rafi Assistant
+- Priority project: the main product/business effort
 - Revenue target: `$10k/month`
 - Wants accountability and help with business structure, pricing, sales, and execution

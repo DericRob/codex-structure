@@ -35,13 +35,13 @@ That includes:
 - `MEMORY.md`
 - `user-profile.md`
 - `feedback-communication-style.md`
-- `project-rafi-business-goal.md`
+- `priority-project-business-goal.md`
 - `zero-trust-agentic-ai.md`
-- `rafi-docker-headless.md`
-- `rafi-multi-tenant-platform.md`
+- `docker-headless-environment-notes.md`
+- `multi-tenant-platform-notes.md`
 - `security-audit-2026-02-19.md`
 - `security-hardening-status.md`
-- `antigravity-rafi-migration.md`
+- `platform-migration-notes.md`
 - `design-advisor-skill.md`
 - `superpowers-parry-install.md` *(historical notes only; no install step required)*
 - `vibe-coding-improvements.md`
