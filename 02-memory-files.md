@@ -45,7 +45,7 @@ That includes:
 - `design-advisor-skill.md`
 - `superpowers-parry-install.md` *(historical notes only; no install step required)*
 - `vibe-coding-improvements.md`
-- `claude-skills-analysis.md` *(historical analysis; may be renamed later)*
+- `skill-architecture-analysis.md` *(historical analysis of skill structure patterns)*
 - `reminder-electric-bill-april-2026.md`
 
 ## Required cleanup after copy

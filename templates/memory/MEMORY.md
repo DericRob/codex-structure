@@ -35,5 +35,5 @@
 - See `antigravity-rafi-migration.md` for the Rafi-to-Antigravity migration mapping
 - See `rafi-multi-tenant-platform.md` for the multi-tenant platform architecture and status
 - See `superpowers-parry-install.md` for Superpowers and Parry setup notes
-- See `vibe-coding-improvements.md` and `claude-skills-analysis.md` for workflow and skill architecture guidance
+- See `vibe-coding-improvements.md` and `skill-architecture-analysis.md` for workflow and skill architecture guidance
 - See `reminder-electric-bill-april-2026.md` for the dated reminder record
