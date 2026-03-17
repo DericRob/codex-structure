@@ -30,6 +30,4 @@
 
 ## Other Notes
 
-- See `superpowers-parry-install.md` for optional tooling setup notes
 - See `vibe-coding-improvements.md` and `skill-architecture-analysis.md` for workflow and skill architecture guidance
-- See `reminder-electric-bill-april-2026.md` for the dated reminder record

@@ -40,18 +40,9 @@ That includes:
 - `security-audit-2026-02-19.md`
 - `security-hardening-status.md`
 - `design-advisor-skill.md`
-- `superpowers-parry-install.md` *(historical notes only; no install step required)*
 - `vibe-coding-improvements.md`
-- `skill-architecture-analysis.md` *(historical analysis of skill structure patterns)*
-- `reminder-electric-bill-april-2026.md`
+- `skill-architecture-analysis.md`
 
-## Required cleanup after copy
+## Notes
 
-Update memory text anywhere it still says:
-
-- `~/.claude/...`
-- `CLAUDE.md`
-- `Claude Code`
-- Claude-only slash commands or plugin references
-
-Those files are being preserved for durable project knowledge, not as operational instructions.
+These memory templates are intentionally public-safe examples. Keep any real personal notes, reminders, account details, or machine-specific context in private local files rather than the public template set.

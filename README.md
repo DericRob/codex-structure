@@ -1,6 +1,6 @@
 # Codex Global Setup Prompts
 
-These prompts and templates recreate a **Codex-native** environment on a new machine. legacy Claude-specific operational assumptions have been removed.
+These prompts and templates recreate a **Codex-native** environment on a new machine. Legacy Claude-specific operational assumptions have been removed.
 
 ## What this repo now contains
 
