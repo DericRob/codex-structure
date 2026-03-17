@@ -30,8 +30,6 @@
 
 ## Other Notes
 
-- See `platform-migration-notes.md` for the migration mapping between agent platforms
-- See `multi-tenant-platform-notes.md` for the multi-tenant platform architecture and status
 - See `superpowers-parry-install.md` for optional tooling setup notes
 - See `vibe-coding-improvements.md` and `skill-architecture-analysis.md` for workflow and skill architecture guidance
 - See `reminder-electric-bill-april-2026.md` for the dated reminder record
