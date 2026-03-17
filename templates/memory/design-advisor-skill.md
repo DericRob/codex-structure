@@ -12,6 +12,6 @@ The global `design` skill provides:
 - landing page patterns
 - UX guidelines
 - chart recommendations
-- Creative Tim mappings
+- CT mappings
 
 It should be consulted before frontend implementation when design direction matters.

@@ -4,7 +4,7 @@
 
 A design advisor skill that provides industry-specific UI/UX recommendations before building. Searches design data files to give actionable recommendations with hex codes, font pairings, layout patterns, component examples, and anti-pattern warnings.
 
-Supports 260+ industry palettes, 57 font pairings, 750+ design rules, real 21st.dev component examples, and Creative Tim kit recommendations.
+Supports 260+ industry palettes, 57 font pairings, 750+ design rules, real 21st.dev component examples, and CT kit recommendations.
 
 ## Workflow
 
@@ -12,7 +12,7 @@ Supports 260+ industry palettes, 57 font pairings, 750+ design rules, real 21st.
 2. Search relevant CSV data files in this skill's `data/` directory
 3. Cross-reference with design vocabulary for proper terminology
 4. Search 21st.dev for real component examples (if MCP `magic` server is available)
-5. Check Creative Tim catalog for matching dashboard/UI kits
+5. Check CT catalog for matching dashboard/UI kits
 6. Present structured recommendations with implementation details
 
 ## Data Files
@@ -26,7 +26,7 @@ Search these CSV files in `data/` based on what the user needs:
 - **landing.csv** — 30 landing page layout patterns and CTA strategies
 - **ux-guidelines.csv** — 166 UX do/don't rules with code examples
 - **charts.csv** — 31 data visualization recommendations by data type
-- **creative-tim.csv** — 45 Creative Tim component/kit mappings by industry and use case
+- **creative-tim.csv** — 45 CT component/kit mappings by industry and use case
 
 ## How to Search
 
@@ -74,7 +74,7 @@ Recommended animations and interactions (with CSS/Tailwind snippets).
 
 ### 7. Component Examples
 - **21st.dev**: Search for matching components using the `magic` MCP tool (if available). Show component names and links.
-- **Creative Tim**: Recommend specific kits, templates, or components from `creative-tim.csv`.
+- **CT**: Recommend specific kits, templates, or components from `creative-tim.csv`.
 
 ### 8. Next Step
 Suggest a concrete next action — e.g., "Use the design skill again with more specifics" or "Start building with these specs."
