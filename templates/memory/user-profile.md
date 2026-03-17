@@ -1,31 +1,22 @@
 ---
-name: D.Rob - User Profile
-description: D.Rob's role, background, experience level, working style, goals, and interaction preferences
+name: User Profile
+description: Private user context, preferences, goals, and working style
 type: user
 ---
 
-## Who D.Rob Is
+## Purpose
 
-- Goes by `D.Rob`
-- Solo founder and developer across multiple side projects
-- Day job: IT Specialist at the CDC
-- Working toward an AI business with real recurring revenue
+Use this file for machine-local user context that should not be committed to a public template repository.
 
-## Technical Background
+## Suggested sections
 
-- Understands software concepts well
-- Prefers JavaScript, but works in Python when the stack calls for it
-- Uses AI primarily as an implementation partner and stays at the architecture and direction level
+- preferred name
+- communication style
+- technical background
+- business or project goals
+- recurring preferences
+- things to avoid
 
-## Communication Preferences
+## Privacy note
 
-- Prefers the assistant be called `Milo`
-- Keep routine responses short
-- Skip chatter on standard operations
-- Save useful notes and fixes proactively
-
-## Business Goals
-
-- Priority project: the main product/business effort
-- Revenue target: `$10k/month`
-- Wants accountability and help with business structure, pricing, sales, and execution
+Keep real personal details in a private local copy, not in the public template.

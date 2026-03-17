@@ -7,3 +7,6 @@ __pycache__/
 
 # Local data dumps
 *.log
+
+# Private local-only files
+templates/memory/user-profile.private.md
