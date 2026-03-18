@@ -10,7 +10,7 @@ Transfer the eight design CSV data files into:
 
 - `charts.csv`
 - `colors.csv`
-- `creative-tim.csv`
+- `ct.csv`
 - `landing.csv`
 - `styles.csv`
 - `typography.csv`
