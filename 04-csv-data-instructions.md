@@ -35,7 +35,7 @@ tar xzf codex-design-data.tar.gz -C ~/.codex/skills/design/
 |------|---------|
 | charts.csv | data_type, best_chart, colors, accessibility, library, when_to_use, anti_pattern |
 | colors.csv | product_type, primary, secondary, cta, background, text, border |
-| creative-tim.csv | product_type, kit_name, framework, description, best_components, use_case, url_path |
+| ct.csv | product_type, kit_name, framework, description, best_components, use_case, url_path |
 | landing.csv | pattern_name, section_order, cta_placement, color_strategy, effects, conversion_tips, best_for |
 | styles.csv | name, description, implementation, use_cases, do_examples, dont_examples |
 | typography.csv | name, category, heading_font, body_font, mood, best_for, google_fonts_url |

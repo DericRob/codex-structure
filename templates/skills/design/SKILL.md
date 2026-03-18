@@ -26,7 +26,7 @@ Search these CSV files in `data/` based on what the user needs:
 - **landing.csv** — 30 landing page layout patterns and CTA strategies
 - **ux-guidelines.csv** — 166 UX do/don't rules with code examples
 - **charts.csv** — 31 data visualization recommendations by data type
-- **creative-tim.csv** — 45 CT component/kit mappings by industry and use case
+- **ct.csv** — 45 CT component/kit mappings by industry and use case
 
 ## How to Search
 
@@ -74,7 +74,7 @@ Recommended animations and interactions (with CSS/Tailwind snippets).
 
 ### 7. Component Examples
 - **21st.dev**: Search for matching components using the `magic` MCP tool (if available). Show component names and links.
-- **CT**: Recommend specific kits, templates, or components from `creative-tim.csv`.
+- **CT**: Recommend specific kits, templates, or components from `ct.csv`.
 
 ### 8. Next Step
 Suggest a concrete next action — e.g., "Use the design skill again with more specifics" or "Start building with these specs."
