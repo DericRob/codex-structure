@@ -2,6 +2,8 @@
 
 This file provides workspace guidance for Codex and other coding agents when working from this Documents directory.
 
+Launch Codex through `~/.codex/launcher/start-codex.ps1` on Windows or `~/.codex/launcher/start-codex.sh` on macOS/Linux so this file is injected into every new session prompt.
+
 ## Directory Overview
 
 This is a personal Documents folder containing multiple independent projects, business files, and media. It is not a single repository. Navigate to the relevant project directory before doing work.

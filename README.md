@@ -10,6 +10,7 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 | `02-memory-files.md` | Recreate project memory files under `~/.codex/memories/projects/<slug>/` |
 | `03-design-skill.md` | Recreate the global `design` skill under `~/.codex/skills/design/` |
 | `04-csv-data-instructions.md` | Transfer the design CSV data files into `~/.codex/skills/design/data/` |
+| `templates/launcher/` | Install wrapper scripts that inject `~/Documents/CODEX.md` into every new Codex session |
 | `templates/` | Source-of-truth files to copy from instead of giant inline markdown blobs |
 
 ## Key changes from the old Claude version
@@ -36,6 +37,7 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 - [ ] add your API keys to `~/Documents/.mcp.json`
 - [ ] transfer CSV data files into `~/.codex/skills/design/data/`
 - [ ] start watcher with `~/.codex/watcher/start.sh`
+- [ ] launch Codex through `~/.codex/launcher/start-codex.(ps1|sh)` so `~/Documents/CODEX.md` is injected at session start
 
 ## Repo structure
 
@@ -43,6 +45,9 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 templates/
 ├── config/mcp.json
 ├── docs/CODEX.md
+├── launcher/
+│   ├── start-codex.ps1
+│   └── start-codex.sh
 ├── memory/*.md
 ├── skills/design/SKILL.md
 └── watcher/
