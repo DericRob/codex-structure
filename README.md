@@ -6,7 +6,7 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 
 | File | Purpose |
 |---|---|
-| `01-core-config-watcher.md` | Create `~/.codex/watcher/`, `~/.codex/audit.jsonl`, `~/Documents/CODEX.md`, and `~/Documents/.mcp.json` |
+| `01-core-config-watcher.md` | Create `~/.codex/watcher/`, `~/.codex/alerts.jsonl`, `~/Documents/CODEX.md`, and `~/Documents/.mcp.json` |
 | `02-memory-files.md` | Recreate project memory files under `~/.codex/memories/projects/<slug>/` |
 | `03-design-skill.md` | Recreate the global `design` skill under `~/.codex/skills/design/` |
 | `04-csv-data-instructions.md` | Transfer the design CSV data files into `~/.codex/skills/design/data/` |

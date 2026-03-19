@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append a single event to ~/.codex/audit.jsonl for local watcher testing."""
+"""Append a single event to ~/.codex/audit.jsonl for legacy local watcher testing."""
 import json
 import pathlib
 import sys

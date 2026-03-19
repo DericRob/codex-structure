@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Zero Trust Watcher — Real-time audit dashboard server.
+"""Zero Trust Watcher - Real-time dashboard for Codex session logs.
 
-Monitors ~/.codex/audit.jsonl and serves a live dashboard at localhost:9999.
-Python 3 stdlib only — no external dependencies.
+Monitors ~/.codex/sessions/**/*.jsonl and serves a live dashboard at localhost:9999.
+Python 3 stdlib only - no external dependencies.
 """
 
+import hashlib
 import http.server
 import json
-import os
 import pathlib
 import queue
 import subprocess
@@ -15,20 +15,293 @@ import threading
 import time
 import urllib.parse
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime
 
 # --- Configuration ---
 PORT = 9999
 HOST = "127.0.0.1"
-AUDIT_LOG = pathlib.Path.home() / ".codex" / "audit.jsonl"
+SESSIONS_ROOT = pathlib.Path.home() / ".codex" / "sessions"
 ALERTS_LOG = pathlib.Path.home() / ".codex" / "alerts.jsonl"
 DASHBOARD_PATH = pathlib.Path(__file__).parent / "dashboard.html"
+POLL_INTERVAL = 1.0
 
 # --- In-memory state ---
-events = []  # All parsed audit events
+events = []  # Normalized events for the dashboard
 alerts = []  # Anomaly detections
 sse_clients = []  # Queue per SSE client
 lock = threading.Lock()
+
+
+class SessionLogMonitor:
+    """Tracks Codex session JSONL files and emits normalized watcher events."""
+
+    def __init__(self, sessions_root):
+        self.sessions_root = sessions_root
+        self.file_offsets = {}
+        self.seen_event_ids = set()
+        self.session_agents = defaultdict(dict)
+
+    def load_existing_events(self):
+        """Read all existing session files once at startup."""
+        normalized = []
+        for path in sorted(self._session_files()):
+            normalized.extend(self._read_new_lines(path, from_start=True))
+        return normalized
+
+    def poll(self):
+        """Read only new lines appended since the last poll."""
+        normalized = []
+        for path in sorted(self._session_files()):
+            normalized.extend(self._read_new_lines(path, from_start=False))
+        return normalized
+
+    def _session_files(self):
+        if not self.sessions_root.exists():
+            return []
+        return self.sessions_root.rglob("*.jsonl")
+
+    def _read_new_lines(self, path, from_start):
+        if from_start:
+            offset = 0
+        else:
+            offset = self.file_offsets.get(path)
+            if offset is None:
+                offset = path.stat().st_size
+
+        normalized = []
+        with path.open("r", encoding="utf-8") as f:
+            f.seek(offset)
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    raw_event = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                normalized.extend(self._normalize_event(raw_event, path))
+            self.file_offsets[path] = f.tell()
+        return normalized
+
+    def _normalize_event(self, raw_event, path):
+        raw_type = raw_event.get("type")
+        timestamp = raw_event.get("timestamp", "")
+        payload = raw_event.get("payload", {})
+
+        if raw_type == "session_meta":
+            session_id = payload.get("id", "no-session")
+            return [self._event(
+                raw_event,
+                event="session_start",
+                session_id=session_id,
+                timestamp=payload.get("timestamp") or timestamp,
+                tool="Session",
+                detail=f"{payload.get('source', 'unknown')} @ {payload.get('cwd', '')}",
+                cwd=payload.get("cwd", ""),
+                agent_id="main",
+                agent_type=payload.get("originator", "codex"),
+            )]
+
+        if raw_type == "turn_context":
+            turn_id = payload.get("turn_id", "")
+            return [self._event(
+                raw_event,
+                event="turn_context",
+                session_id=self._session_id_from_path(path),
+                timestamp=timestamp,
+                tool="Turn",
+                detail=f"{payload.get('approval_policy', 'unknown')} / {payload.get('model', 'unknown')}",
+                cwd=payload.get("cwd", ""),
+                turn_id=turn_id,
+            )]
+
+        if raw_type == "event_msg":
+            inner_type = payload.get("type")
+            if inner_type == "user_message":
+                return [self._event(
+                    raw_event,
+                    event="user_message",
+                    session_id=self._session_id_from_path(path),
+                    timestamp=timestamp,
+                    tool="User",
+                    detail=payload.get("message", "").strip(),
+                )]
+            if inner_type == "agent_message":
+                return [self._event(
+                    raw_event,
+                    event="assistant_message",
+                    session_id=self._session_id_from_path(path),
+                    timestamp=timestamp,
+                    tool="Assistant",
+                    detail=payload.get("message", "").strip(),
+                    phase=payload.get("phase", ""),
+                )]
+            if inner_type == "task_started":
+                return [self._event(
+                    raw_event,
+                    event="task_started",
+                    session_id=self._session_id_from_path(path),
+                    timestamp=timestamp,
+                    tool="Task",
+                    detail=payload.get("turn_id", ""),
+                    turn_id=payload.get("turn_id", ""),
+                )]
+            if inner_type == "task_complete":
+                return [self._event(
+                    raw_event,
+                    event="task_complete",
+                    session_id=self._session_id_from_path(path),
+                    timestamp=timestamp,
+                    tool="Task",
+                    detail=(payload.get("last_agent_message") or "").strip(),
+                    turn_id=payload.get("turn_id", ""),
+                )]
+            return []
+
+        if raw_type != "response_item":
+            return []
+
+        payload_type = payload.get("type")
+        session_id = self._session_id_from_path(path)
+        if payload_type == "function_call":
+            tool_name = self._tool_name(payload.get("name", "unknown"))
+            detail = self._tool_detail(payload)
+            return [self._event(
+                raw_event,
+                event="tool_use",
+                session_id=session_id,
+                timestamp=timestamp,
+                tool=tool_name,
+                detail=detail,
+                call_id=payload.get("call_id", ""),
+            )]
+
+        if payload_type == "function_call_output":
+            output = payload.get("output", "")
+            if "Permission denied" in output or "sandbox" in output.lower():
+                return [self._event(
+                    raw_event,
+                    event="tool_blocked",
+                    session_id=session_id,
+                    timestamp=timestamp,
+                    tool="shell_command",
+                    detail="Sandbox or permission failure",
+                    decision="deny",
+                    reason=self._first_nonempty_line(output),
+                    call_id=payload.get("call_id", ""),
+                )]
+            return []
+
+        if payload_type == "message" and payload.get("role") == "assistant":
+            phase = payload.get("phase", "")
+            text = self._assistant_text(payload)
+            if not text:
+                return []
+            return [self._event(
+                raw_event,
+                event="assistant_message",
+                session_id=session_id,
+                timestamp=timestamp,
+                tool="Assistant",
+                detail=text,
+                phase=phase,
+            )]
+
+        if payload_type == "reasoning":
+            summary = self._reasoning_summary(payload)
+            if not summary:
+                return []
+            return [self._event(
+                raw_event,
+                event="reasoning",
+                session_id=session_id,
+                timestamp=timestamp,
+                tool="Reasoning",
+                detail=summary,
+            )]
+
+        return []
+
+    @staticmethod
+    def _first_nonempty_line(output):
+        for line in output.splitlines():
+            line = line.strip()
+            if line:
+                return line
+        return "Command blocked"
+
+    @staticmethod
+    def _assistant_text(payload):
+        content = payload.get("content", [])
+        texts = []
+        for item in content:
+            if item.get("type") == "output_text":
+                text = item.get("text", "").strip()
+                if text:
+                    texts.append(text)
+        return " ".join(texts)
+
+    @staticmethod
+    def _reasoning_summary(payload):
+        summaries = []
+        for item in payload.get("summary", []):
+            if item.get("type") == "summary_text":
+                text = item.get("text", "").strip()
+                if text:
+                    summaries.append(text)
+        return " ".join(summaries)
+
+    @staticmethod
+    def _tool_name(raw_name):
+        mapping = {
+            "shell_command": "Bash",
+            "apply_patch": "Edit",
+            "request_user_input": "AskUserQuestion",
+            "spawn_agent": "TaskCreate",
+            "send_input": "TaskUpdate",
+            "wait_agent": "Task",
+            "close_agent": "Task",
+            "resume_agent": "Task",
+            "view_image": "Read",
+        }
+        return mapping.get(raw_name, raw_name)
+
+    def _tool_detail(self, payload):
+        name = payload.get("name", "")
+        try:
+            arguments = json.loads(payload.get("arguments", "{}"))
+        except json.JSONDecodeError:
+            arguments = {}
+
+        if name == "shell_command":
+            return arguments.get("command", "")
+        if name == "apply_patch":
+            return "apply_patch"
+        if name in {"spawn_agent", "send_input"}:
+            return arguments.get("message", "") or arguments.get("id", "")
+        if name == "wait_agent":
+            ids = arguments.get("ids", [])
+            return ", ".join(ids)
+        if name == "view_image":
+            return arguments.get("path", "")
+        return json.dumps(arguments, sort_keys=True)
+
+    @staticmethod
+    def _session_id_from_path(path):
+        stem = path.stem
+        if "rollout-" in stem:
+            return stem.split("-")[-1]
+        return stem
+
+    def _event(self, raw_event, **fields):
+        digest = hashlib.sha1(
+            json.dumps(raw_event, sort_keys=True, default=str).encode("utf-8")
+        ).hexdigest()
+        fields["id"] = digest
+        return fields
+
+
+monitor = SessionLogMonitor(SESSIONS_ROOT)
 
 
 # --- Anomaly Detection Engine ---
@@ -36,12 +309,12 @@ class AnomalyDetector:
     """Evaluates each new event against security rules."""
 
     def __init__(self):
-        self._session_tools = defaultdict(list)  # session_id -> [(timestamp, tool)]
-        self._session_env_reads = defaultdict(int)  # session_id -> count of .env reads
-        self._no_session_alerted = False  # Only alert once for no-session
+        self._session_tools = defaultdict(list)
+        self._session_env_reads = defaultdict(int)
+        self._tool_output_by_call = {}
+        self._no_session_alerted = False
 
     def check(self, event):
-        """Run all rules against a new event. Returns list of alert dicts."""
         new_alerts = []
         ts = event.get("timestamp", "")
         sid = event.get("session_id", "unknown")
@@ -49,32 +322,27 @@ class AnomalyDetector:
         detail = event.get("detail", "")
         evt_type = event.get("event", "")
 
-        # Track tool calls per session
         if evt_type == "tool_use":
             self._session_tools[sid].append((ts, tool))
 
-        # Rule: Unknown session (fire once, not per-event)
         if sid == "no-session" and evt_type == "tool_use" and not self._no_session_alerted:
             self._no_session_alerted = True
             new_alerts.append(self._alert(
                 "info", "No session context",
-                "Session metadata unavailable in the audit stream", ts
+                "Session metadata unavailable in the stream", ts
             ))
 
-        # Rule: Blocked events are always alerts
         if evt_type == "tool_blocked":
             decision = event.get("decision", "")
             reason = event.get("reason", "")
             severity = "critical" if decision == "deny" else "warning"
-            # Elevate secret-related blocks
             if "secret" in reason.lower() or "credential" in reason.lower():
                 severity = "critical"
             new_alerts.append(self._alert(
                 severity, f"Tool gate: {decision}",
-                f"{tool} — {reason}", ts
+                f"{tool} - {reason}", ts
             ))
 
-        # Rule: Secret access (>3 .env reads in one session)
         if evt_type == "tool_use" and tool == "Read" and ".env" in detail:
             self._session_env_reads[sid] += 1
             if self._session_env_reads[sid] == 4:
@@ -84,19 +352,15 @@ class AnomalyDetector:
                     ts
                 ))
 
-        # Rule: Burst (>20 tool calls in 60 seconds)
         if evt_type == "tool_use":
             recent = [t for t, _ in self._session_tools[sid]
                       if self._time_diff(t, ts) < 60]
-            if len(recent) > 20:
-                # Only fire once per burst
-                if len(recent) == 21:
-                    new_alerts.append(self._alert(
-                        "warning", "Tool call burst",
-                        f"Session {sid[:12]}... made {len(recent)} calls in 60s", ts
-                    ))
+            if len(recent) > 20 and len(recent) == 21:
+                new_alerts.append(self._alert(
+                    "warning", "Tool call burst",
+                    f"Session {sid[:12]}... made {len(recent)} calls in 60s", ts
+                ))
 
-        # Rule: Bash heavy (>70% of calls are Bash, min 10 calls)
         if evt_type == "tool_use":
             tools_list = [t for _, t in self._session_tools[sid]]
             if len(tools_list) >= 10:
@@ -104,11 +368,10 @@ class AnomalyDetector:
                 if bash_pct > 0.7 and len(tools_list) % 10 == 0:
                     new_alerts.append(self._alert(
                         "warning", "Bash-heavy session",
-                        f"Session {sid[:12]}... — {bash_pct:.0%} Bash ({len(tools_list)} total calls)",
+                        f"Session {sid[:12]}... - {bash_pct:.0%} Bash ({len(tools_list)} total calls)",
                         ts
                     ))
 
-        # Rule: Rapid file writes (>10 Write/Edit in 30 seconds)
         if evt_type == "tool_use" and tool in ("Write", "Edit"):
             write_times = [t for t, tl in self._session_tools[sid]
                            if tl in ("Write", "Edit") and self._time_diff(t, ts) < 30]
@@ -134,7 +397,6 @@ class AnomalyDetector:
 
     @staticmethod
     def _notify(severity, title, description):
-        """Send macOS desktop notification for critical/high alerts."""
         try:
             icon = "CRITICAL" if severity == "critical" else "HIGH"
             subprocess.Popen(
@@ -149,8 +411,8 @@ class AnomalyDetector:
         except OSError:
             pass
 
-    def _time_diff(self, ts1, ts2):
-        """Approximate time diff in seconds between two ISO timestamps."""
+    @staticmethod
+    def _time_diff(ts1, ts2):
         try:
             t1 = datetime.fromisoformat(ts1.replace("Z", "+00:00"))
             t2 = datetime.fromisoformat(ts2.replace("Z", "+00:00"))
@@ -162,70 +424,54 @@ class AnomalyDetector:
 detector = AnomalyDetector()
 
 
-# --- Audit Log Tailer ---
-def tail_audit_log():
-    """Continuously tail the audit log file, parsing new lines."""
-    # Wait for file to exist
-    while not AUDIT_LOG.exists():
-        time.sleep(1)
+def publish_event(event, persist_alerts):
+    """Add a normalized event, evaluate alerts, and fan out to SSE clients."""
+    if event["id"] in monitor.seen_event_ids:
+        return
+    monitor.seen_event_ids.add(event["id"])
+    events.append(event)
+    new_alerts = detector.check(event)
+    alerts.extend(new_alerts)
 
-    with open(AUDIT_LOG, "r") as f:
-        # Read existing content first
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
+    if persist_alerts:
+        for alert in new_alerts:
             try:
-                event = json.loads(line)
-                with lock:
-                    events.append(event)
-                    new_alerts = detector.check(event)
-                    alerts.extend(new_alerts)
-            except json.JSONDecodeError:
-                continue
+                with ALERTS_LOG.open("a", encoding="utf-8") as af:
+                    af.write(json.dumps(alert) + "\n")
+            except OSError:
+                pass
 
-        # Now tail for new lines
-        while True:
-            line = f.readline()
-            if not line:
-                time.sleep(0.5)
-                continue
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                event = json.loads(line)
-                with lock:
-                    events.append(event)
-                    new_alerts = detector.check(event)
-                    alerts.extend(new_alerts)
-                    # Persist alerts
-                    for alert in new_alerts:
-                        try:
-                            with open(ALERTS_LOG, "a") as af:
-                                af.write(json.dumps(alert) + "\n")
-                        except OSError:
-                            pass
-                    # Push to SSE clients
-                    sse_data = json.dumps({
-                        "event": event,
-                        "alerts": new_alerts
-                    })
-                    dead = []
-                    for i, q in enumerate(sse_clients):
-                        try:
-                            q.put_nowait(sse_data)
-                        except queue.Full:
-                            dead.append(i)
-                    for i in reversed(dead):
-                        sse_clients.pop(i)
-            except json.JSONDecodeError:
-                continue
+    sse_data = json.dumps({"event": event, "alerts": new_alerts})
+    dead = []
+    for i, q in enumerate(sse_clients):
+        try:
+            q.put_nowait(sse_data)
+        except queue.Full:
+            dead.append(i)
+    for i in reversed(dead):
+        sse_clients.pop(i)
 
 
-# --- Stats Computation ---
+def tail_session_logs():
+    """Continuously scan Codex session logs for new lines."""
+    while not SESSIONS_ROOT.exists():
+        time.sleep(POLL_INTERVAL)
+
+    with lock:
+        for event in monitor.load_existing_events():
+            publish_event(event, persist_alerts=False)
+
+    while True:
+        new_events = monitor.poll()
+        if new_events:
+            with lock:
+                for event in new_events:
+                    publish_event(event, persist_alerts=True)
+        time.sleep(POLL_INTERVAL)
+
+
 def compute_stats():
-    """Compute aggregated statistics from events."""
+    """Compute aggregated statistics from normalized watcher events."""
     with lock:
         total = len(events)
         sessions = set()
@@ -243,12 +489,11 @@ def compute_stats():
                 tool_counts[e.get("tool", "unknown")] += 1
             if e.get("event") == "tool_blocked":
                 blocked_count += 1
-            if e.get("event") == "agent_start":
-                aid = e.get("agent_id", "unknown")
-                agents[aid] = {
-                    "agent_id": aid,
-                    "agent_type": e.get("agent_type", "unknown"),
-                    "session_id": e.get("session_id", ""),
+            if e.get("event") == "session_start":
+                agents["main"] = {
+                    "agent_id": "main",
+                    "agent_type": e.get("agent_type", "codex"),
+                    "session_id": sid,
                     "timestamp": e.get("timestamp", ""),
                     "tool_count": 0
                 }
@@ -256,12 +501,11 @@ def compute_stats():
             if ts:
                 last_ts = ts
                 try:
-                    hour = ts[:13]  # YYYY-MM-DDTHH
+                    hour = ts[:13]
                     hourly[hour] += 1
                 except (IndexError, TypeError):
                     pass
 
-        # Count tools per agent (approximate — agents use the same session)
         alert_count = len(alerts)
 
     return {
@@ -276,12 +520,10 @@ def compute_stats():
     }
 
 
-# --- HTTP Handler ---
 class WatcherHandler(http.server.BaseHTTPRequestHandler):
     """Handles all HTTP requests for the watcher dashboard."""
 
     def log_message(self, format, *args):
-        """Suppress default access logging."""
         pass
 
     def do_GET(self):
@@ -319,7 +561,7 @@ class WatcherHandler(http.server.BaseHTTPRequestHandler):
     def _serve_events(self, params):
         offset = int(params.get("offset", ["0"])[0])
         limit = int(params.get("limit", ["100"])[0])
-        limit = min(limit, 500)  # Cap at 500
+        limit = min(limit, 500)
         with lock:
             page = events[offset:offset + limit]
             total = len(events)
@@ -356,7 +598,6 @@ class WatcherHandler(http.server.BaseHTTPRequestHandler):
             sse_clients.append(q)
 
         try:
-            # Send initial connected event
             self.wfile.write(b"event: connected\ndata: {\"status\":\"connected\"}\n\n")
             self.wfile.flush()
 
@@ -366,7 +607,6 @@ class WatcherHandler(http.server.BaseHTTPRequestHandler):
                     self.wfile.write(f"event: audit\ndata: {data}\n\n".encode())
                     self.wfile.flush()
                 except queue.Empty:
-                    # Send keepalive
                     self.wfile.write(b": keepalive\n\n")
                     self.wfile.flush()
         except (BrokenPipeError, ConnectionResetError, OSError):
@@ -393,28 +633,25 @@ class WatcherHandler(http.server.BaseHTTPRequestHandler):
         self.send_header("Referrer-Policy", "no-referrer")
 
 
-# --- Threaded Server ---
 class ThreadedHTTPServer(http.server.HTTPServer):
     """Handle each request in a separate thread for SSE support."""
+
     daemon_threads = True
     allow_reuse_address = True
 
     def handle_error(self, request, client_address):
-        """Suppress broken pipe errors from SSE disconnects."""
         pass
 
 
 def main():
-    # Start audit log tailer in background
-    tailer = threading.Thread(target=tail_audit_log, daemon=True)
+    tailer = threading.Thread(target=tail_session_logs, daemon=True)
     tailer.start()
 
-    # Give the tailer a moment to load existing events
     time.sleep(0.3)
 
     server = ThreadedHTTPServer((HOST, PORT), WatcherHandler)
     print(f"Zero Trust Watcher running at http://{HOST}:{PORT}")
-    print(f"Monitoring: {AUDIT_LOG}")
+    print(f"Monitoring: {SESSIONS_ROOT}")
     with lock:
         print(f"Loaded {len(events)} existing events, {len(alerts)} alerts")
 
