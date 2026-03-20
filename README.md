@@ -12,6 +12,7 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 | `04-csv-data-instructions.md` | Transfer the design CSV data files into `~/.codex/skills/design/data/` |
 | `templates/launcher/` | Install wrapper scripts that inject `~/Documents/CODEX.md` into every new Codex session |
 | `templates/` | Source-of-truth files to copy from instead of giant inline markdown blobs |
+| `templates/docs/WORKLOG.md` | Standard project worklog template for plans, to-dos, mistakes, fixes, and handoff notes |
 
 ## Key changes from the old Claude version
 
@@ -36,6 +37,7 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 - [ ] add your API keys to `~/Documents/.mcp.json`
 - [ ] transfer CSV data files into `~/.codex/skills/design/data/`
 - [ ] launch Codex through `~/.codex/launcher/start-codex.(ps1|sh)` so `~/Documents/CODEX.md` is injected at session start
+- [ ] create a repo-local `WORKLOG.md` from `templates/docs/WORKLOG.md` and keep it updated during work
 
 ## Repo structure
 

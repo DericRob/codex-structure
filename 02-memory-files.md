@@ -46,3 +46,5 @@ That includes:
 ## Notes
 
 These memory templates are intentionally public-safe examples. Keep any real personal notes, reminders, account details, or machine-specific context in private local files rather than the public template set.
+
+For active implementation work, also keep a repo-local `WORKLOG.md` in the project root using `templates/docs/WORKLOG.md` as the starting template. Use it for execution notes, to-do lists, mistakes, fixes, and handoff context.

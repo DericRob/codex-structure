@@ -12,6 +12,17 @@ This is a personal Documents folder containing multiple independent projects, bu
 
 Each active project should keep its own local notes, memory, or agent guidance. Read those before making changes.
 
+Each active project should also keep a repo-local `WORKLOG.md` that records:
+
+- what changed
+- next tasks
+- mistakes made
+- root cause
+- fixes applied
+- verification status
+
+Update that file during work, not only at the end.
+
 Document your own project list here if you want a machine-local workspace index, but do not commit private project names, paths, or internal descriptions to a public template repo.
 
 ## Cross-Project Notes
