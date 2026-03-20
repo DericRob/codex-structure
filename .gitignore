@@ -10,3 +10,8 @@ __pycache__/
 
 # Private local-only files
 templates/memory/user-profile.private.md
+
+# Watcher runtime artifacts from local template testing
+templates/watcher/watcher.pid
+templates/watcher/watcher.out.log
+templates/watcher/watcher.err.log

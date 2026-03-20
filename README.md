@@ -6,7 +6,7 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 
 | File | Purpose |
 |---|---|
-| `01-core-config-watcher.md` | Create `~/.codex/watcher/`, `~/.codex/alerts.jsonl`, `~/Documents/CODEX.md`, and `~/Documents/.mcp.json` |
+| `01-core-config-watcher.md` | Create `~/.codex/watcher/`, Windows and Unix watcher launchers, `~/.codex/alerts.jsonl`, `~/Documents/CODEX.md`, and `~/Documents/.mcp.json` |
 | `02-memory-files.md` | Recreate project memory files under `~/.codex/memories/projects/<slug>/` |
 | `03-design-skill.md` | Recreate the global `design` skill under `~/.codex/skills/design/` |
 | `04-csv-data-instructions.md` | Transfer the design CSV data files into `~/.codex/skills/design/data/` |
@@ -31,12 +31,10 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 
 ## Post-setup checklist
 
-- [ ] `chmod +x ~/.codex/watcher/*.sh ~/.codex/watcher/server.py ~/.codex/watcher/append_event.py`
-- [ ] `touch ~/.codex/audit.jsonl`
+- [ ] use `~/.codex/watcher/start.ps1` on Windows or `~/.codex/watcher/start.sh` on macOS/Linux
 - [ ] copy memory files into `~/.codex/memories/projects/<slug>/`
 - [ ] add your API keys to `~/Documents/.mcp.json`
 - [ ] transfer CSV data files into `~/.codex/skills/design/data/`
-- [ ] start watcher with `~/.codex/watcher/start.sh`
 - [ ] launch Codex through `~/.codex/launcher/start-codex.(ps1|sh)` so `~/Documents/CODEX.md` is injected at session start
 
 ## Repo structure
@@ -54,6 +52,8 @@ templates/
     ├── append_event.py
     ├── dashboard.html
     ├── server.py
+    ├── start.ps1
     ├── start.sh
+    ├── stop.ps1
     └── stop.sh
 ```

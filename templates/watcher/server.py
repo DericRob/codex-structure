@@ -8,22 +8,27 @@ Python 3 stdlib only - no external dependencies.
 import hashlib
 import http.server
 import json
+import os
 import pathlib
 import queue
 import subprocess
+import sys
 import threading
 import time
 import urllib.parse
-from collections import defaultdict
+from collections import defaultdict, deque
 from datetime import datetime
 
 # --- Configuration ---
-PORT = 9999
-HOST = "127.0.0.1"
+DEFAULT_PORT = 9999
+DEFAULT_HOST = "127.0.0.1"
 SESSIONS_ROOT = pathlib.Path.home() / ".codex" / "sessions"
 ALERTS_LOG = pathlib.Path.home() / ".codex" / "alerts.jsonl"
 DASHBOARD_PATH = pathlib.Path(__file__).parent / "dashboard.html"
 POLL_INTERVAL = 1.0
+MAX_STARTUP_FILES = 8
+MAX_EVENTS = 5000
+MAX_STARTUP_LINES_PER_FILE = 120
 
 # --- In-memory state ---
 events = []  # Normalized events for the dashboard
@@ -44,8 +49,15 @@ class SessionLogMonitor:
     def load_existing_events(self):
         """Read all existing session files once at startup."""
         normalized = []
-        for path in sorted(self._session_files()):
-            normalized.extend(self._read_new_lines(path, from_start=True))
+        session_files = sorted(
+            self._session_files(),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )[:MAX_STARTUP_FILES]
+        for path in reversed(session_files):
+            normalized.extend(self._read_recent_lines(path))
+            if len(normalized) > MAX_EVENTS:
+                normalized = normalized[-MAX_EVENTS:]
         return normalized
 
     def poll(self):
@@ -81,6 +93,25 @@ class SessionLogMonitor:
                     continue
                 normalized.extend(self._normalize_event(raw_event, path))
             self.file_offsets[path] = f.tell()
+        return normalized
+
+    def _read_recent_lines(self, path):
+        """Read only a bounded tail for fast startup, then begin tailing from EOF."""
+        recent_lines = deque(maxlen=MAX_STARTUP_LINES_PER_FILE)
+        with path.open("r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    recent_lines.append(line)
+            self.file_offsets[path] = f.tell()
+
+        normalized = []
+        for line in recent_lines:
+            try:
+                raw_event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            normalized.extend(self._normalize_event(raw_event, path))
         return normalized
 
     def _normalize_event(self, raw_event, path):
@@ -430,8 +461,12 @@ def publish_event(event, persist_alerts):
         return
     monitor.seen_event_ids.add(event["id"])
     events.append(event)
+    if len(events) > MAX_EVENTS:
+        del events[:-MAX_EVENTS]
     new_alerts = detector.check(event)
     alerts.extend(new_alerts)
+    if len(alerts) > MAX_EVENTS:
+        del alerts[:-MAX_EVENTS]
 
     if persist_alerts:
         for alert in new_alerts:
@@ -457,15 +492,15 @@ def tail_session_logs():
     while not SESSIONS_ROOT.exists():
         time.sleep(POLL_INTERVAL)
 
-    with lock:
-        for event in monitor.load_existing_events():
+    for event in monitor.load_existing_events():
+        with lock:
             publish_event(event, persist_alerts=False)
 
     while True:
         new_events = monitor.poll()
         if new_events:
-            with lock:
-                for event in new_events:
+            for event in new_events:
+                with lock:
                     publish_event(event, persist_alerts=True)
         time.sleep(POLL_INTERVAL)
 
@@ -643,17 +678,47 @@ class ThreadedHTTPServer(http.server.HTTPServer):
         pass
 
 
+def parse_runtime_config(argv):
+    host = os.environ.get("WATCHER_HOST", DEFAULT_HOST)
+    port = DEFAULT_PORT
+
+    raw_port = os.environ.get("WATCHER_PORT")
+    if raw_port:
+        try:
+            port = int(raw_port)
+        except ValueError:
+            pass
+
+    args = list(argv)
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg == "--host" and i + 1 < len(args):
+            host = args[i + 1]
+            i += 2
+            continue
+        if arg == "--port" and i + 1 < len(args):
+            try:
+                port = int(args[i + 1])
+            except ValueError:
+                raise SystemExit(f"Invalid --port value: {args[i + 1]}")
+            i += 2
+            continue
+        raise SystemExit(f"Unknown argument: {arg}")
+
+    return host, port
+
+
 def main():
+    host, port = parse_runtime_config(sys.argv[1:])
     tailer = threading.Thread(target=tail_session_logs, daemon=True)
     tailer.start()
 
     time.sleep(0.3)
 
-    server = ThreadedHTTPServer((HOST, PORT), WatcherHandler)
-    print(f"Zero Trust Watcher running at http://{HOST}:{PORT}")
+    server = ThreadedHTTPServer((host, port), WatcherHandler)
+    print(f"Zero Trust Watcher running at http://{host}:{port}")
     print(f"Monitoring: {SESSIONS_ROOT}")
-    with lock:
-        print(f"Loaded {len(events)} existing events, {len(alerts)} alerts")
 
     try:
         server.serve_forever()
