@@ -12,6 +12,27 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 | `04-csv-data-instructions.md` | Transfer the design CSV data files into `~/.codex/skills/design/data/` |
 | `templates/launcher/` | Install wrapper scripts that inject `~/Documents/CODEX.md` into every new Codex session |
 | `templates/` | Source-of-truth files to copy from instead of giant inline markdown blobs |
+| `templates/skills/` | 9 portable skills — AIOS workflow skills + productivity skills (see below) |
+
+## Skills
+
+### AIOS Portable Skills (platform-agnostic workflow skills)
+
+| Skill | Purpose |
+|-------|---------|
+| `sparc-workflow` | Structured methodology: Spec → Pseudocode → Architecture → Refine → Complete |
+| `model-router` | Cost-optimal LLM routing by task complexity (fast/balanced/heavy tiers) |
+| `consensus-review` | Multi-pass voting quality gate before high-stakes actions |
+| `session-memory-sync` | Auto-capture/restore context across sessions via lifecycle hooks |
+
+### Productivity Skills (executive assistant capabilities)
+
+| Skill | Purpose |
+|-------|---------|
+| `inbox-triage` | Email urgency categorization + draft replies |
+| `smart-scheduling` | Deep-work protection, conflict detection, reschedule suggestions |
+| `follow-up-tracker` | Waiting-on ledger with due dates and overdue surfacing |
+| `delegation-tracker` | Assign and track work across people with accountability |
 
 ## Key changes from the old Claude version
 
@@ -49,7 +70,16 @@ templates/
 │   ├── start-codex.ps1
 │   └── start-codex.sh
 ├── memory/*.md
-├── skills/design/SKILL.md
+├── skills/
+│   ├── design/SKILL.md
+│   ├── sparc-workflow/SKILL.md
+│   ├── model-router/SKILL.md
+│   ├── consensus-review/SKILL.md
+│   ├── session-memory-sync/SKILL.md
+│   ├── inbox-triage/SKILL.md
+│   ├── smart-scheduling/SKILL.md
+│   ├── follow-up-tracker/SKILL.md
+│   └── delegation-tracker/SKILL.md
 └── watcher/
     ├── append_event.py
     ├── dashboard.html
