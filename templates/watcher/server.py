@@ -11,6 +11,7 @@ import json
 import os
 import pathlib
 import queue
+import socketserver
 import subprocess
 import sys
 import threading
@@ -670,7 +671,7 @@ class WatcherHandler(http.server.BaseHTTPRequestHandler):
         self.send_header("Referrer-Policy", "no-referrer")
 
 
-class ThreadedHTTPServer(http.server.HTTPServer):
+class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     """Handle each request in a separate thread for SSE support."""
 
     daemon_threads = True

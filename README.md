@@ -72,7 +72,9 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 ```text
 templates/
 ├── config/mcp.json
-├── docs/CODEX.md
+├── docs/
+│   ├── CODEX.md
+│   └── WORKLOG.md
 ├── launcher/
 │   ├── start-codex.ps1
 │   └── start-codex.sh

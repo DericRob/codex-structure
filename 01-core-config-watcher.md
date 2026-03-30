@@ -50,6 +50,7 @@ Copy these repo files to the matching destination paths:
 - `append_event.py` is an optional manual testing helper that writes synthetic Codex session events under `~/.codex/sessions/manual/` and is not part of the live data path.
 - On Windows, start the watcher through `~/.codex/watcher/start.ps1` and stop it with `~/.codex/watcher/stop.ps1`.
 - On macOS/Linux, continue to use `~/.codex/watcher/start.sh` and `~/.codex/watcher/stop.sh`.
+- For isolated validation, override the bind settings with `WATCHER_HOST` / `WATCHER_PORT` on macOS/Linux or use `start.ps1 -BindHost ... -Port ...` on Windows.
 - Start Codex through `~/.codex/launcher/start-codex.ps1` on Windows or `~/.codex/launcher/start-codex.sh` on macOS/Linux. The wrapper reads `~/Documents/CODEX.md` and injects it into the initial session prompt so the file is loaded every time.
 
 ## Post-copy commands
