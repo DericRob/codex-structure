@@ -36,6 +36,8 @@ AIOSx should provide:
 - a runtime kernel for agent scheduling and resource access
 - adapters for concrete execution environments such as Codex, MCP, and OpenAI-native agents
 
+The current `AIOS` repo can seed that future direction with portable workflow skills and agent playbooks for planning, implementation, testing, review, and production validation.
+
 ## What AIOSx Is Not
 
 AIOSx is not intended to be:
@@ -108,6 +110,8 @@ It adds:
 - managed access to tools, memory, and storage
 - policy-native execution boundaries
 - a platform model that can support more than one agent environment
+
+The portable skills and agent playbooks now being collected in the current repo are intended to remain useful inputs to that future adapter layer rather than being tied to one orchestration runtime.
 
 ## Example Use Cases
 

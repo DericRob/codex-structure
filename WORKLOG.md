@@ -21,12 +21,25 @@
 - Files changed: watcher launchers, watcher server, README/setup docs, `WORKLOG.md`, `WATCHER-HANDOFF.md`
 - Behavior changed: the watcher server is now actually threaded, Unix launcher health checks follow configured host/port, and start/stop scripts validate watcher identity before killing a PID
 - Why the change was made: fix false-positive startup messages, reduce PID-reuse risk, and keep the repo docs aligned with the current watcher behavior
+- Date: 2026-03-30
+- Files changed: `templates/skills/`, `templates/agents/`, `templates/docs/AGENT-PLAYBOOKS.md`, `README.md`, `AIOSx-README-DRAFT.md`
+- Behavior changed: the repo now includes portable engineering skills (`security-audit`, `quality-gate`, `pair-programming`, `skill-builder`) plus Codex-friendly agent playbooks for coordination, planning, research, implementation, review, testing, and production validation
+- Why the change was made: incorporate the best reusable ideas from Ruflo without importing its Claude-specific swarm machinery or repo sprawl
+- Date: 2026-03-30
+- Files changed: `03-design-skill.md`, `05-aios-workflow-skills.md`, `06-engineering-quality-skills.md`, `07-productivity-skills.md`, `README.md`, `01-core-config-watcher.md`
+- Behavior changed: the repo now has install docs for all portable skill packs, and the main skill prompt explains what each skill group is used for
+- Why the change was made: make the setup docs match the expanded skill library and make skill purpose visible during installation
+- Date: 2026-03-30
+- Files changed: `03-design-skill.md`, `05-aios-workflow-skills.md`, `06-engineering-quality-skills.md`, `07-productivity-skills.md`
+- Behavior changed: each skill-pack prompt now includes explicit per-skill descriptions instead of only a summary table
+- Why the change was made: the first pass was too terse and made the intended use of each skill easy to miss
 
 ## To Do
 
 - [ ] Keep this worklog updated as changes are made
 - [ ] Validate the PowerShell watcher launchers on a real Windows host
 - [ ] Review whether the presentation and `AIOSx` drafts should remain in this repo long-term or move to a separate repo
+- [ ] Decide whether the new agent playbooks should stay as templates here or move into a future standalone `AIOSx` runtime repo
 - [ ] If `AIOSx` moves forward, scaffold it as a separate repo instead of extending this repo indefinitely
 
 ## Mistakes And Fixes
@@ -58,12 +71,12 @@
 
 ## Verification
 
-- Commands run: `python3 -m py_compile`, watcher launcher smoke tests with isolated host/port settings, HTML/local-link validation
-- Manual checks: reviewed transcript-based comparison, reordered slides to match the direct comparison logic, created repo-facing plus leadership-facing `AIOSx` documents, and refreshed watcher docs/worklog notes
-- Remaining risks: PowerShell launcher behavior still needs live validation on a Windows machine; `AIOSx` materials may still need a naming, scope, and audience pass before external use
+- Commands run: `python3 -m py_compile`, watcher launcher smoke tests with isolated host/port settings, HTML/local-link validation, skill-doc structure checks
+- Manual checks: reviewed Ruflo skill and agent patterns, mapped them to Codex-native workflows, scaffolded new portable skills and agent playbooks, created install docs for each skill pack, and refreshed README/AIOSx draft docs
+- Remaining risks: PowerShell launcher behavior still needs live validation on a Windows machine; the new agent playbooks are guidance templates and not yet wired into a runtime-specific orchestration layer
 
 ## Notes For The Next Session
 
-- Important context to load first: `WORKLOG.md`, `WATCHER-HANDOFF.md`, `AIOSx-PLAN.md`, `AIOSx-README-DRAFT.md`, `AIOSx-ARCHITECTURE-BRIEF.md`
-- Active decisions and constraints: keep this repo focused on Codex bootstrap and observability; treat `AIOSx` as a separate future repo
-- Open questions: whether to scaffold `AIOSx` locally next, whether to convert the draft README into a true repo root README, and whether to expand the brief into leadership slides
+- Important context to load first: `WORKLOG.md`, `README.md`, `03-design-skill.md`, `05-aios-workflow-skills.md`, `06-engineering-quality-skills.md`, `07-productivity-skills.md`
+- Active decisions and constraints: keep this repo focused on Codex bootstrap and portable workflow patterns; treat `AIOSx` as a separate future repo if runtime/kernel work begins
+- Open questions: whether to standardize frontmatter across all older skills next, whether to add repo-local validation/examples for the new playbooks, and whether to split `AIOSx` materials into their own repo

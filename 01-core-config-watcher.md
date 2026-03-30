@@ -18,7 +18,7 @@ Use this prompt to recreate the Codex-native core setup on a new machine.
 │   ├── start.sh
 │   ├── stop.ps1
 │   └── stop.sh
-└── skills/                      # design skill installed in Prompt 03
+└── skills/                      # portable skills installed in Prompts 03, 05, 06, and 07
 
 ~/Documents/
 ├── CODEX.md
