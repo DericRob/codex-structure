@@ -13,6 +13,33 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 | `templates/launcher/` | Install wrapper scripts that inject `~/Documents/CODEX.md` into every new Codex session |
 | `templates/` | Source-of-truth files to copy from instead of giant inline markdown blobs |
 | `templates/docs/WORKLOG.md` | Standard project worklog template for plans, to-dos, mistakes, fixes, and handoff notes |
+| `templates/skills/` | 9 portable skills — design + AIOS workflow + productivity skills (see below) |
+
+## Skills
+
+### Design & UI Skill
+
+| Skill | Purpose |
+|-------|---------|
+| `design` | Industry-specific UI/UX recommendations backed by local CSV data |
+
+### AIOS Portable Skills (platform-agnostic workflow skills)
+
+| Skill | Purpose |
+|-------|---------|
+| `sparc-workflow` | Structured methodology: Spec → Pseudocode → Architecture → Refine → Complete |
+| `model-router` | Cost-optimal LLM routing by task complexity (fast/balanced/heavy tiers) |
+| `consensus-review` | Multi-pass voting quality gate before high-stakes actions |
+| `session-memory-sync` | Auto-capture/restore context across sessions via lifecycle hooks |
+
+### Productivity Skills (executive assistant capabilities)
+
+| Skill | Purpose |
+|-------|---------|
+| `inbox-triage` | Email urgency categorization + draft replies |
+| `smart-scheduling` | Deep-work protection, conflict detection, reschedule suggestions |
+| `follow-up-tracker` | Waiting-on ledger with due dates and overdue surfacing |
+| `delegation-tracker` | Assign and track work across people with accountability |
 
 ## Key changes from the old Claude version
 
@@ -33,6 +60,7 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 ## Post-setup checklist
 
 - [ ] use `~/.codex/watcher/start.ps1` on Windows or `~/.codex/watcher/start.sh` on macOS/Linux
+- [ ] `chmod +x ~/.codex/watcher/*.sh ~/.codex/watcher/server.py ~/.codex/watcher/append_event.py`
 - [ ] copy memory files into `~/.codex/memories/projects/<slug>/`
 - [ ] add your API keys to `~/Documents/.mcp.json`
 - [ ] transfer CSV data files into `~/.codex/skills/design/data/`
@@ -49,7 +77,16 @@ templates/
 │   ├── start-codex.ps1
 │   └── start-codex.sh
 ├── memory/*.md
-├── skills/design/SKILL.md
+├── skills/
+│   ├── design/SKILL.md
+│   ├── sparc-workflow/SKILL.md
+│   ├── model-router/SKILL.md
+│   ├── consensus-review/SKILL.md
+│   ├── session-memory-sync/SKILL.md
+│   ├── inbox-triage/SKILL.md
+│   ├── smart-scheduling/SKILL.md
+│   ├── follow-up-tracker/SKILL.md
+│   └── delegation-tracker/SKILL.md
 └── watcher/
     ├── append_event.py
     ├── dashboard.html

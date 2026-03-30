@@ -78,7 +78,9 @@ class SessionLogMonitor:
         else:
             offset = self.file_offsets.get(path)
             if offset is None:
-                offset = path.stat().st_size
+                # New files discovered after startup should be read from the
+                # beginning so the first batch of session events is not lost.
+                offset = 0
 
         normalized = []
         with path.open("r", encoding="utf-8") as f:
