@@ -78,5 +78,5 @@ findings:
 
 - **Claude Code**: Implement via `SessionStart` and `PreCompact` hooks in `settings.json`
 - **Rafi Assistant**: Implement via heartbeat system + memory service
-- **Codex**: Implement via `AGENTS.md` session restore instructions
+- **Codex**: Implement via `~/Documents/CODEX.md` plus launcher/bootstrap instructions that restore session context at startup
 - **Antigravity**: Implement via `.agent/rules/` session rules

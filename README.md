@@ -12,9 +12,15 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 | `04-csv-data-instructions.md` | Transfer the design CSV data files into `~/.codex/skills/design/data/` |
 | `templates/launcher/` | Install wrapper scripts that inject `~/Documents/CODEX.md` into every new Codex session |
 | `templates/` | Source-of-truth files to copy from instead of giant inline markdown blobs |
-| `templates/skills/` | 9 portable skills — AIOS workflow skills + productivity skills (see below) |
+| `templates/skills/` | 9 portable skills — design + AIOS workflow + productivity skills (see below) |
 
 ## Skills
+
+### Design & UI Skill
+
+| Skill | Purpose |
+|-------|---------|
+| `design` | Industry-specific UI/UX recommendations backed by local CSV data |
 
 ### AIOS Portable Skills (platform-agnostic workflow skills)
 
@@ -53,7 +59,6 @@ These prompts and templates recreate a **Codex-native** environment on a new mac
 ## Post-setup checklist
 
 - [ ] `chmod +x ~/.codex/watcher/*.sh ~/.codex/watcher/server.py ~/.codex/watcher/append_event.py`
-- [ ] `touch ~/.codex/audit.jsonl`
 - [ ] copy memory files into `~/.codex/memories/projects/<slug>/`
 - [ ] add your API keys to `~/Documents/.mcp.json`
 - [ ] transfer CSV data files into `~/.codex/skills/design/data/`
