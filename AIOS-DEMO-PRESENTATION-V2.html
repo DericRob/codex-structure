@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIOS Demo Presentation V2</title>
+  <style>
+    :root {
+      --bg: #f3efe6;
+      --paper: #fffaf1;
+      --ink: #15202b;
+      --muted: #586776;
+      --line: #d8cdbd;
+      --accent: #0f766e;
+      --accent-2: #b45309;
+      --accent-3: #1d4ed8;
+      --soft-1: #d9efe8;
+      --soft-2: #f7e2c9;
+      --soft-3: #dbe8fb;
+      --danger: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Segoe UI", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.10), transparent 28%),
+        radial-gradient(circle at top right, rgba(180, 83, 9, 0.10), transparent 24%),
+        linear-gradient(180deg, #f6f1e6, var(--bg));
+    }
+    .deck {
+      width: min(1200px, calc(100vw - 40px));
+      margin: 24px auto 48px;
+      display: grid;
+      gap: 24px;
+    }
+    .slide {
+      background: linear-gradient(180deg, rgba(255,250,241,0.98), rgba(255,248,235,0.98));
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 32px;
+      min-height: 680px;
+      box-shadow: 0 18px 40px rgba(34, 39, 46, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .slide::after {
+      content: "";
+      position: absolute;
+      right: -60px;
+      top: -60px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(15, 118, 110, 0.08), transparent 68%);
+      pointer-events: none;
+    }
+    .kicker {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.74rem;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    h1, h2 {
+      margin: 0 0 14px;
+      line-height: 1.05;
+    }
+    h1 { font-size: clamp(2.6rem, 6vw, 4.4rem); max-width: 820px; }
+    h2 { font-size: clamp(2rem, 4vw, 3rem); }
+    h3 {
+      margin: 0 0 8px;
+      font-size: 1.1rem;
+      font-family: "Segoe UI", sans-serif;
+    }
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 1.06rem;
+    }
+    a { color: var(--accent-3); }
+    .lede {
+      max-width: 820px;
+      font-size: 1.14rem;
+      margin-bottom: 26px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 22px;
+      align-items: start;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .card {
+      background: rgba(255,255,255,0.68);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 18px 18px 20px;
+    }
+    .card p, li, .nav {
+      font-family: "Segoe UI", sans-serif;
+    }
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      line-height: 1.6;
+      color: var(--ink);
+    }
+    li + li { margin-top: 6px; }
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-family: "Segoe UI", sans-serif;
+      font-size: 0.9rem;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    .soft-1 { background: var(--soft-1); }
+    .soft-2 { background: var(--soft-2); }
+    .soft-3 { background: var(--soft-3); }
+    .topic-list {
+      display: grid;
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .topic {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.64);
+    }
+    .topic-num {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-family: "Segoe UI", sans-serif;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(135deg, var(--accent), var(--accent-3));
+    }
+    .diagram {
+      width: 100%;
+      background: rgba(255,255,255,0.74);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 18px;
+    }
+    .diagram svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .footer {
+      position: absolute;
+      bottom: 22px;
+      right: 28px;
+      font-family: "Segoe UI", sans-serif;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .callout {
+      border-left: 5px solid var(--accent-2);
+      padding: 12px 16px;
+      background: rgba(180, 83, 9, 0.08);
+      border-radius: 0 16px 16px 0;
+      margin-top: 16px;
+      font-family: "Segoe UI", sans-serif;
+      color: var(--ink);
+    }
+    .two-col-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .danger {
+      color: var(--danger);
+      font-weight: 700;
+    }
+    .nav {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      display: grid;
+      gap: 10px;
+      z-index: 20;
+    }
+    .nav button {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      font-size: 1.6rem;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      box-shadow: 0 8px 20px rgba(34,39,46,0.12);
+      cursor: pointer;
+    }
+    .tree {
+      margin: 14px 0 0;
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      font-family: Consolas, monospace;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      color: var(--ink);
+    }
+    .cmd {
+      margin-top: 14px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.76);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      font-family: Consolas, monospace;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      color: var(--ink);
+    }
+    .install-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+    .install-card {
+      background: rgba(255,255,255,0.86);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 20px;
+    }
+    .install-card h3 {
+      margin-bottom: 12px;
+    }
+    .step {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(243, 239, 230, 0.72);
+      border: 1px solid var(--line);
+      font-family: "Segoe UI", sans-serif;
+    }
+    .step-label {
+      display: inline-block;
+      margin-bottom: 8px;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .copy-map {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .copy-item {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.84);
+      border: 1px solid var(--line);
+      font-family: Consolas, monospace;
+      font-size: 0.84rem;
+    }
+    .screenshot-frame {
+      margin-top: 20px;
+      padding: 16px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: inset 0 0 0 1px rgba(216,205,189,0.35);
+    }
+    .screenshot-frame img {
+      display: block;
+      width: 100%;
+      max-height: 540px;
+      object-fit: contain;
+      border-radius: 14px;
+      border: 1px solid rgba(21,32,43,0.08);
+      background: #101826;
+    }
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 18px;
+      font-family: "Segoe UI", sans-serif;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      overflow: hidden;
+    }
+    .matrix-table th,
+    .matrix-table td {
+      text-align: left;
+      vertical-align: top;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .matrix-table th {
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      background: rgba(217, 239, 232, 0.52);
+    }
+    .matrix-table td {
+      font-size: 0.96rem;
+      line-height: 1.45;
+      color: var(--ink);
+    }
+    .matrix-table tr:last-child td {
+      border-bottom: none;
+    }
+    .roadmap-layout {
+      display: grid;
+      grid-template-columns: 1fr 0.92fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .roadmap-image {
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 12px;
+    }
+    .roadmap-image img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+    .arrow {
+      font-family: "Segoe UI", sans-serif;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    @media (max-width: 900px) {
+      .slide { min-height: auto; padding: 24px; }
+      .grid-2, .grid-3, .two-col-list, .install-grid { grid-template-columns: 1fr; }
+      .copy-item { grid-template-columns: 1fr; }
+    }
+    @media print {
+      .nav { display: none; }
+      body { background: white; }
+      .deck { width: 100%; margin: 0; }
+      .slide { break-after: page; box-shadow: none; min-height: 100vh; }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav" aria-label="Presentation navigation">
+    <button id="prevSlide" title="Previous slide" aria-label="Previous slide">↑</button>
+    <button id="nextSlide" title="Next slide" aria-label="Next slide">↓</button>
+  </div>
+
+  <main class="deck">
+    <section class="slide" id="slide-1">
+      <div class="kicker">AI Department Demo</div>
+      <h1>AIOS: A Practical Operating Layer for Codex on Real Developer Machines</h1>
+      <p class="lede">This presentation explains what the current <strong>AIOS</strong> project is, why it matters, where it fits operationally, and how it can support governed AI-assisted engineering work without pretending to be a full agent operating system.</p>
+
+      <div class="grid-2">
+        <div>
+          <div class="topic-list">
+            <div class="topic">
+              <div class="topic-num">1</div>
+              <div>
+                <strong>Bootstrap</strong>
+                <p>AIOS standardizes local setup, startup prompts, memory files, watcher scripts, and MCP configuration.</p>
+              </div>
+            </div>
+            <div class="topic">
+              <div class="topic-num">2</div>
+              <div>
+                <strong>Observability</strong>
+                <p>It adds a local watcher that makes Codex session activity visible through dashboards, alerts, and near-real-time session monitoring.</p>
+              </div>
+            </div>
+            <div class="topic">
+              <div class="topic-num">3</div>
+              <div>
+                <strong>Reproducibility</strong>
+                <p>It gives teams a repeatable way to rebuild the same workstation AI environment across people, machines, and onboarding cycles.</p>
+              </div>
+            </div>
+            <div class="topic">
+              <div class="topic-num">4</div>
+              <div>
+                <strong>Governance Support</strong>
+                <p>It improves traceability for tool usage, permission failures, and risky behavior patterns in local development sessions.</p>
+              </div>
+            </div>
+            <div class="topic">
+              <div class="topic-num">5</div>
+              <div>
+                <strong>Future Platform Direction</strong>
+                <p>It creates a credible bridge toward a broader control-plane architecture such as <strong>AIOSx</strong> without overclaiming today’s scope.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="diagram">
+          <svg viewBox="0 0 520 420" xmlns="http://www.w3.org/2000/svg" aria-label="AIOS overview diagram">
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#0f766e"/>
+                <stop offset="100%" stop-color="#1d4ed8"/>
+              </linearGradient>
+            </defs>
+            <rect x="170" y="150" width="180" height="90" rx="20" fill="url(#g1)"/>
+            <text x="260" y="188" text-anchor="middle" fill="white" font-size="24" font-family="Segoe UI" font-weight="700">AIOS</text>
+            <text x="260" y="214" text-anchor="middle" fill="white" font-size="13" font-family="Segoe UI">Codex-native workstation ops</text>
+
+            <rect x="24" y="38" width="150" height="76" rx="18" fill="#d9efe8" stroke="#d8cdbd"/>
+            <text x="99" y="72" text-anchor="middle" font-size="18" font-family="Segoe UI" font-weight="700">Bootstrap</text>
+            <text x="99" y="94" text-anchor="middle" font-size="12" font-family="Segoe UI">launchers, prompts, memory</text>
+
+            <rect x="346" y="38" width="150" height="76" rx="18" fill="#dbe8fb" stroke="#d8cdbd"/>
+            <text x="421" y="72" text-anchor="middle" font-size="18" font-family="Segoe UI" font-weight="700">Watcher</text>
+            <text x="421" y="94" text-anchor="middle" font-size="12" font-family="Segoe UI">dashboard, alerts, logs</text>
+
+            <rect x="24" y="304" width="150" height="76" rx="18" fill="#f7e2c9" stroke="#d8cdbd"/>
+            <text x="99" y="338" text-anchor="middle" font-size="18" font-family="Segoe UI" font-weight="700">Controls</text>
+            <text x="99" y="360" text-anchor="middle" font-size="12" font-family="Segoe UI">local policy and review</text>
+
+            <rect x="346" y="304" width="150" height="76" rx="18" fill="#f7e2c9" stroke="#d8cdbd"/>
+            <text x="421" y="338" text-anchor="middle" font-size="18" font-family="Segoe UI" font-weight="700">Ops Value</text>
+            <text x="421" y="360" text-anchor="middle" font-size="12" font-family="Segoe UI">consistency and auditability</text>
+
+            <line x1="174" y1="113" x2="217" y2="150" stroke="#1d4ed8" stroke-width="4"/>
+            <line x1="346" y1="113" x2="303" y2="150" stroke="#1d4ed8" stroke-width="4"/>
+            <line x1="174" y1="304" x2="217" y2="240" stroke="#b45309" stroke-width="4"/>
+            <line x1="346" y1="304" x2="303" y2="240" stroke="#b45309" stroke-width="4"/>
+          </svg>
+        </div>
+      </div>
+      <div class="footer">Slide 1</div>
+    </section>
+
+    <section class="slide" id="slide-2">
+      <div class="kicker">Scope</div>
+      <h2>What AIOS Is and What It Is Not</h2>
+      <p class="lede">The current repo is an operational layer around Codex on a developer workstation. It is not a general-purpose agent kernel, and that distinction matters for how I describe it.</p>
+
+      <div class="two-col-list">
+        <div class="card">
+          <h3>What AIOS Is</h3>
+          <ul>
+            <li>A reproducible setup pattern for Codex-native development.</li>
+            <li>A local watcher and dashboard for session activity.</li>
+            <li>A packaging approach for memory, prompts, config, and skills.</li>
+            <li>A control-oriented layer for real workstation operations.</li>
+            <li>A practical tool for teams that need visibility without major platform overhead.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>What AIOS Is Not</h3>
+          <ul>
+            <li>Not a multi-agent scheduler.</li>
+            <li>Not a syscall-driven runtime kernel.</li>
+            <li>Not a universal LLM execution substrate.</li>
+            <li>Not a replacement for the operating system.</li>
+            <li>Not yet a full observability plus evaluation platform.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer">Slide 2</div>
+    </section>
+
+    <section class="slide" id="slide-3">
+      <div class="kicker">Architecture</div>
+      <h2>How AIOS Works on a Developer Machine</h2>
+      <p class="lede">The current implementation wraps the developer workflow with consistent startup behavior, local memory injection, watcher-based observability, and a small amount of policy-oriented operational discipline.</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 1000 420" xmlns="http://www.w3.org/2000/svg" aria-label="AIOS architecture flow">
+          <rect x="20" y="110" width="180" height="190" rx="24" fill="#d9efe8" stroke="#d8cdbd"/>
+          <text x="110" y="152" text-anchor="middle" font-size="26" font-family="Segoe UI" font-weight="700">Developer</text>
+          <text x="110" y="184" text-anchor="middle" font-size="15" font-family="Segoe UI">launches Codex</text>
+          <text x="110" y="208" text-anchor="middle" font-size="15" font-family="Segoe UI">through AIOS wrappers</text>
+
+          <rect x="240" y="70" width="220" height="270" rx="24" fill="#fff" stroke="#d8cdbd"/>
+          <text x="350" y="112" text-anchor="middle" font-size="24" font-family="Segoe UI" font-weight="700">AIOS Bootstrap</text>
+          <text x="350" y="150" text-anchor="middle" font-size="15" font-family="Segoe UI">startup prompt injection</text>
+          <text x="350" y="176" text-anchor="middle" font-size="15" font-family="Segoe UI">memory files</text>
+          <text x="350" y="202" text-anchor="middle" font-size="15" font-family="Segoe UI">watcher launcher</text>
+          <text x="350" y="228" text-anchor="middle" font-size="15" font-family="Segoe UI">MCP config</text>
+          <text x="350" y="254" text-anchor="middle" font-size="15" font-family="Segoe UI">worklog pattern</text>
+
+          <rect x="500" y="70" width="220" height="270" rx="24" fill="#dbe8fb" stroke="#d8cdbd"/>
+          <text x="610" y="112" text-anchor="middle" font-size="24" font-family="Segoe UI" font-weight="700">Codex Session</text>
+          <text x="610" y="150" text-anchor="middle" font-size="15" font-family="Segoe UI">user prompts</text>
+          <text x="610" y="176" text-anchor="middle" font-size="15" font-family="Segoe UI">assistant actions</text>
+          <text x="610" y="202" text-anchor="middle" font-size="15" font-family="Segoe UI">tool calls</text>
+          <text x="610" y="228" text-anchor="middle" font-size="15" font-family="Segoe UI">session log output</text>
+
+          <rect x="760" y="70" width="220" height="270" rx="24" fill="#f7e2c9" stroke="#d8cdbd"/>
+          <text x="870" y="112" text-anchor="middle" font-size="24" font-family="Segoe UI" font-weight="700">Watcher Layer</text>
+          <text x="870" y="150" text-anchor="middle" font-size="15" font-family="Segoe UI">reads local session logs</text>
+          <text x="870" y="176" text-anchor="middle" font-size="15" font-family="Segoe UI">normalizes events</text>
+          <text x="870" y="202" text-anchor="middle" font-size="15" font-family="Segoe UI">surfaces alerts</text>
+          <text x="870" y="228" text-anchor="middle" font-size="15" font-family="Segoe UI">supports dashboard review</text>
+
+          <line x1="200" y1="205" x2="240" y2="205" stroke="#0f766e" stroke-width="5"/>
+          <line x1="460" y1="205" x2="500" y2="205" stroke="#1d4ed8" stroke-width="5"/>
+          <line x1="720" y1="205" x2="760" y2="205" stroke="#b45309" stroke-width="5"/>
+        </svg>
+      </div>
+
+      <div class="grid-3" style="margin-top: 18px;">
+        <div class="card">
+          <h3>Operational Entry Point</h3>
+          <p>AIOS starts by shaping how the session is launched, not by replacing the model runtime.</p>
+        </div>
+        <div class="card">
+          <h3>Observed Execution</h3>
+          <p>Codex does the work, but AIOS makes that work easier to inspect after the fact.</p>
+        </div>
+        <div class="card">
+          <h3>Local-First Control</h3>
+          <p>The architecture favors local data handling and local visibility, which matters in controlled environments.</p>
+        </div>
+      </div>
+      <div class="footer">Slide 3</div>
+    </section>
+
+    <section class="slide" id="slide-4">
+      <div class="kicker">Installation</div>
+      <h2>What Gets Installed and How Execution Flows</h2>
+      <p class="lede">The installation pattern is intentionally simple. AIOS places launcher scripts, watcher files, memory content, and configuration into the local Codex area so the runtime behavior is shaped before a session begins.</p>
+
+      <div class="grid-2">
+        <div>
+          <div class="topic-list">
+            <div class="topic">
+              <div class="topic-num">1</div>
+              <div>
+                <strong>Launcher Scripts</strong>
+                <p><a href="templates/launcher/start-codex.ps1">templates/launcher/start-codex.ps1</a> and <a href="templates/launcher/start-codex.sh">templates/launcher/start-codex.sh</a> are installed under <code>~/.codex/launcher/</code>.</p>
+              </div>
+            </div>
+            <div class="topic">
+              <div class="topic-num">2</div>
+              <div>
+                <strong>Watcher Components</strong>
+                <p><a href="templates/watcher/server.py">server.py</a>, <a href="templates/watcher/dashboard.html">dashboard.html</a>, and the start/stop scripts are installed under <code>~/.codex/watcher/</code>.</p>
+              </div>
+            </div>
+            <div class="topic">
+              <div class="topic-num">3</div>
+              <div>
+                <strong>Memory and Instructions</strong>
+                <p>Project memory files go under <code>~/.codex/memories/projects/&lt;slug&gt;/</code>, while <a href="templates/docs/CODEX.md">CODEX.md</a> is injected at session start.</p>
+              </div>
+            </div>
+            <div class="topic">
+              <div class="topic-num">4</div>
+              <div>
+                <strong>MCP Configuration</strong>
+                <p><a href="templates/config/mcp.json">templates/config/mcp.json</a> becomes the local model/tool configuration file in the user documents area.</p>
+              </div>
+            </div>
+            <div class="topic">
+              <div class="topic-num">5</div>
+              <div>
+                <strong>Execution Flow</strong>
+                <p>Developer launches Codex through AIOS wrapper, wrapper injects startup guidance, Codex runs, session logs are written, watcher tails those logs, then the dashboard surfaces events and alerts.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="diagram">
+            <svg viewBox="0 0 520 340" xmlns="http://www.w3.org/2000/svg" aria-label="Installation execution flow">
+              <rect x="20" y="28" width="140" height="64" rx="18" fill="#d9efe8" stroke="#d8cdbd"/>
+              <text x="90" y="58" text-anchor="middle" font-size="18" font-family="Segoe UI" font-weight="700">Install AIOS</text>
+              <text x="90" y="78" text-anchor="middle" font-size="12" font-family="Segoe UI">copy local assets</text>
+
+              <rect x="190" y="28" width="140" height="64" rx="18" fill="#dbe8fb" stroke="#d8cdbd"/>
+              <text x="260" y="58" text-anchor="middle" font-size="18" font-family="Segoe UI" font-weight="700">Launch Codex</text>
+              <text x="260" y="78" text-anchor="middle" font-size="12" font-family="Segoe UI">through wrapper</text>
+
+              <rect x="360" y="28" width="140" height="64" rx="18" fill="#f7e2c9" stroke="#d8cdbd"/>
+              <text x="430" y="58" text-anchor="middle" font-size="18" font-family="Segoe UI" font-weight="700">Write Logs</text>
+              <text x="430" y="78" text-anchor="middle" font-size="12" font-family="Segoe UI">session activity</text>
+
+              <rect x="105" y="170" width="140" height="64" rx="18" fill="#f7e2c9" stroke="#d8cdbd"/>
+              <text x="175" y="200" text-anchor="middle" font-size="18" font-family="Segoe UI" font-weight="700">Watcher</text>
+              <text x="175" y="220" text-anchor="middle" font-size="12" font-family="Segoe UI">tail and normalize</text>
+
+              <rect x="275" y="170" width="140" height="64" rx="18" fill="#d9efe8" stroke="#d8cdbd"/>
+              <text x="345" y="200" text-anchor="middle" font-size="18" font-family="Segoe UI" font-weight="700">Dashboard</text>
+              <text x="345" y="220" text-anchor="middle" font-size="12" font-family="Segoe UI">events and alerts</text>
+
+              <line x1="160" y1="60" x2="190" y2="60" stroke="#1d4ed8" stroke-width="4"/>
+              <line x1="330" y1="60" x2="360" y2="60" stroke="#1d4ed8" stroke-width="4"/>
+              <line x1="430" y1="92" x2="365" y2="170" stroke="#b45309" stroke-width="4"/>
+              <line x1="245" y1="202" x2="275" y2="202" stroke="#0f766e" stroke-width="4"/>
+            </svg>
+          </div>
+
+          <div class="tree">~/.codex/
+├── launcher/
+│   ├── start-codex.ps1
+│   └── start-codex.sh
+├── watcher/
+│   ├── server.py
+│   ├── dashboard.html
+│   ├── start.ps1
+│   ├── stop.ps1
+│   ├── start.sh
+│   ├── stop.sh
+│   └── append_event.py
+├── memories/
+│   └── projects/
+│       └── &lt;slug&gt;/
+│           └── *.md
+└── sessions/
+
+~/Documents/
+├── CODEX.md
+└── .mcp.json</div>
+        </div>
+      </div>
+      <div class="footer">Slide 4</div>
+    </section>
+
+    <section class="slide" id="slide-5">
+      <div class="kicker">Five Topics</div>
+      <h2>Five Key Features</h2>
+      <p class="lede">These are the five areas I would highlight because they map directly to concrete files and functions in the current repo.</p>
+
+      <div class="topic-list">
+        <div class="topic">
+          <div class="topic-num">1</div>
+          <div>
+            <strong>Standardized Startup</strong>
+            <p>The setup pattern is documented in <a href="01-core-config-watcher.md">01-core-config-watcher.md</a> and implemented through the launcher scripts in <a href="templates/launcher/start-codex.ps1">templates/launcher/start-codex.ps1</a> and <a href="templates/launcher/start-codex.sh">templates/launcher/start-codex.sh</a>.</p>
+          </div>
+        </div>
+        <div class="topic">
+          <div class="topic-num">2</div>
+          <div>
+            <strong>Session Observability</strong>
+            <p>The watcher logic lives in <a href="templates/watcher/server.py">templates/watcher/server.py</a>, especially the <code>SessionLogMonitor</code>, <code>publish_event</code>, and <code>compute_stats</code> functions, with the UI in <a href="templates/watcher/dashboard.html">templates/watcher/dashboard.html</a>.</p>
+          </div>
+        </div>
+        <div class="topic">
+          <div class="topic-num">3</div>
+          <div>
+            <strong>Memory and Context Packaging</strong>
+            <p>Memory and reusable project context are defined in <a href="02-memory-files.md">02-memory-files.md</a> and the files under <a href="templates/memory/">templates/memory/</a>, with the worklog format in <a href="templates/docs/WORKLOG.md">templates/docs/WORKLOG.md</a>.</p>
+          </div>
+        </div>
+        <div class="topic">
+          <div class="topic-num">4</div>
+          <div>
+            <strong>Governance-Friendly Workflow</strong>
+            <p>Alerting and behavioral checks are implemented in <a href="templates/watcher/server.py">templates/watcher/server.py</a> inside the <code>AnomalyDetector</code> class, including blocked actions, excessive access patterns, and tool bursts.</p>
+          </div>
+        </div>
+        <div class="topic">
+          <div class="topic-num">5</div>
+          <div>
+            <strong>Path Toward AIOSx</strong>
+            <p>The forward-looking architecture is described in <a href="AIOSx-ARCHITECTURE-BRIEF.md">AIOSx-ARCHITECTURE-BRIEF.md</a>, <a href="AIOSx-PLAN.md">AIOSx-PLAN.md</a>, and the draft positioning in <a href="AIOSx-README-DRAFT.md">AIOSx-README-DRAFT.md</a>.</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout">AIOS does for AI-assisted development what standardized workstation engineering does for regular software work: it reduces entropy.</div>
+      <div class="footer">Slide 5</div>
+    </section>
+
+    <section class="slide" id="slide-6">
+      <div class="kicker">Value</div>
+      <h2>Why AIOS Matters to an Enterprise AI Team</h2>
+      <p class="lede">The value of AIOS is not novelty. The value is disciplined execution on real workstations where AI usage needs to be useful, repeatable, and observable.</p>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>Faster Onboarding</h3>
+          <p>Teams can bring new engineers or contractors into a known AI-assisted setup more quickly, with fewer manual steps and fewer hidden assumptions.</p>
+        </div>
+        <div class="card">
+          <h3>Better Oversight</h3>
+          <p>The watcher gives technical leads and operators a clearer picture of how AI tooling is actually being used during development sessions.</p>
+        </div>
+        <div class="card">
+          <h3>Rebuildable Environments</h3>
+          <p>When machines are replaced or teams rotate, the environment can be reconstructed without starting from scratch.</p>
+        </div>
+      </div>
+
+      <div class="pill-row">
+        <div class="pill soft-1">Local-first control</div>
+        <div class="pill soft-2">Practical governance</div>
+        <div class="pill soft-3">Operational consistency</div>
+        <div class="pill soft-1">Developer productivity</div>
+        <div class="pill soft-2">Traceability</div>
+      </div>
+      <div class="footer">Slide 6</div>
+    </section>
+
+    <section class="slide" id="slide-7">
+      <div class="kicker">Use Cases</div>
+      <h2>Where This Fits Best</h2>
+      <p class="lede">Using a business-facing use-case lens, AIOS is strongest where teams need repeatable local setup, visible session behavior, and cleaner handoffs without building a large central platform first.</p>
+
+      <table class="matrix-table" aria-label="AIOS business use case table">
+        <thead>
+          <tr>
+            <th>Business Problem</th>
+            <th>AIOS Use Case</th>
+            <th>Business Outcome</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>New hires lose time getting AI tooling working.</td>
+            <td>Provision a standard Codex workstation with AIOS launcher, watcher, memory, and MCP templates.</td>
+            <td>Faster onboarding with fewer setup errors.</td>
+          </tr>
+          <tr>
+            <td>Employees run different local configurations and get inconsistent results.</td>
+            <td>Recreate the same approved AIOS environment across multiple machines.</td>
+            <td>More consistent outputs and less support drift.</td>
+          </tr>
+          <tr>
+            <td>Leads cannot see how local AI is actually being used.</td>
+            <td>Use the watcher and dashboard to inspect session activity, tools, and alerts.</td>
+            <td>Better oversight of day-to-day AI-assisted development.</td>
+          </tr>
+          <tr>
+            <td>Teams repeatedly re-explain project context to the AI.</td>
+            <td>Load project memory files and standard startup guidance into each session.</td>
+            <td>Higher productivity and less repetitive prompting.</td>
+          </tr>
+          <tr>
+            <td>Shared tool access breaks because local configuration varies by person.</td>
+            <td>Standardize MCP and API configuration through repo templates.</td>
+            <td>More reliable access to approved tools and integrations.</td>
+          </tr>
+          <tr>
+            <td>Project context gets lost during handoffs or machine rebuilds.</td>
+            <td>Use the worklog pattern and reinstall the same AIOS package on replacement machines.</td>
+            <td>Smoother transitions with less rework and less lost context.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:16px;">“If we want teams to use AI productively without losing operational discipline, AIOS is a lightweight but credible starting point.”</p>
+      <div class="footer">Slide 7</div>
+    </section>
+
+    <section class="slide" id="slide-8">
+      <div class="kicker">Watcher</div>
+      <h2>Watcher Window Widgets</h2>
+      <p class="lede">This slide gives a quick explanation of what the main watcher dashboard widgets are showing, so the audience can follow the live display without needing code-level detail.</p>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>Sessions</h3>
+          <p>Shows how many unique Codex sessions the watcher has observed.</p>
+          <p>It provides a fast sense of how much activity the dashboard is summarizing.</p>
+        </div>
+        <div class="card">
+          <h3>Security Alerts</h3>
+          <p>Highlights behaviors that match the watcher’s anomaly or risk rules.</p>
+          <p>It is the triage layer for blocked actions, bursts, suspicious access, and other notable patterns.</p>
+        </div>
+        <div class="card">
+          <h3>Tool Usage</h3>
+          <p>Shows which tools the AI has been using most often in the observed history.</p>
+          <p>It helps distinguish command-heavy, edit-heavy, or otherwise unusual session behavior.</p>
+        </div>
+        <div class="card">
+          <h3>Activity Chart</h3>
+          <p>Displays how event volume changes over time.</p>
+          <p>It helps identify bursts of activity or periods of concentrated agent work.</p>
+        </div>
+        <div class="card">
+          <h3>Recent Events</h3>
+          <p>Lists the newest normalized events pulled from Codex session logs.</p>
+          <p>It lets reviewers see recent tool calls, assistant messages, and state changes in sequence.</p>
+        </div>
+        <div class="card">
+          <h3>Agents / Session Detail</h3>
+          <p>Shows session-specific context such as agent identity, timing, and recent usage.</p>
+          <p>It helps connect the high-level metrics back to a concrete session or actor.</p>
+        </div>
+      </div>
+      <div class="footer">Slide 8</div>
+    </section>
+
+    <section class="slide" id="slide-9">
+      <div class="kicker">Watcher</div>
+      <h2>Watcher Dashboard Example</h2>
+      <p class="lede">This screenshot is sized to show the full watcher window in one frame. It gives a concrete view of how the live feed, usage widgets, alerts, and blocked-action panel appear during real session monitoring.</p>
+
+      <div class="screenshot-frame">
+        <img src="watcherPageImage.png" alt="Watcher dashboard screenshot">
+      </div>
+      <div class="footer">Slide 9</div>
+    </section>
+
+    <section class="slide" id="slide-10">
+      <div class="kicker">Roadmap</div>
+      <h2>About AIOS and AIOSx</h2>
+      <p class="lede">The clean positioning is simple: AIOS is the practical current capability. AIOSx is the broader target architecture for richer control, tracing, and evaluation.</p>
+
+      <div class="roadmap-layout">
+        <div class="diagram">
+          <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" aria-label="AIOS to AIOSx roadmap">
+            <rect x="30" y="96" width="250" height="118" rx="24" fill="#d9efe8" stroke="#d8cdbd"/>
+            <text x="155" y="137" text-anchor="middle" font-size="30" font-family="Segoe UI" font-weight="700">AIOS</text>
+            <text x="155" y="168" text-anchor="middle" font-size="15" font-family="Segoe UI">bootstrap + watcher + local ops</text>
+            <text x="155" y="191" text-anchor="middle" font-size="15" font-family="Segoe UI">useful today</text>
+
+            <line x1="280" y1="155" x2="400" y2="155" stroke="#1d4ed8" stroke-width="6"/>
+            <polygon points="400,155 367,138 367,172" fill="#1d4ed8"/>
+
+            <rect x="410" y="70" width="250" height="170" rx="24" fill="#dbe8fb" stroke="#d8cdbd"/>
+            <text x="535" y="108" text-anchor="middle" font-size="30" font-family="Segoe UI" font-weight="700">AIOSx</text>
+            <text x="535" y="141" text-anchor="middle" font-size="15" font-family="Segoe UI">control plane + runtime kernel</text>
+            <text x="535" y="164" text-anchor="middle" font-size="15" font-family="Segoe UI">trace, replay, eval, analytics</text>
+            <text x="535" y="187" text-anchor="middle" font-size="15" font-family="Segoe UI">broader future platform</text>
+          </svg>
+        </div>
+        <div class="roadmap-image">
+          <img src="AIOSx_diagram.png" alt="AIOSx architecture diagram">
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 18px;">
+        <div class="card">
+          <h3>Emphasis</h3>
+          <p>AIOS proves the operational need and gives a working foundation. AIOSx is how that foundation becomes a more complete platform.</p>
+        </div>
+        <div class="card">
+          <h3>Big Note</h3>
+          <p class="danger">AIOS is not a full "AI Operating System." It is better described as a disciplined local operational layer.</p>
+        </div>
+      </div>
+      <div class="footer">Slide 10</div>
+    </section>
+
+    <section class="slide" id="slide-11">
+      <div class="kicker">Install</div>
+      <h2>Install and Start AIOS</h2>
+      <p class="lede">This is the cleanest way to explain setup during the demo: create the target folders, place the AIOS files into those installed locations, start the watcher, then launch Codex through the wrapper.</p>
+
+      <div class="card" style="margin-top: 18px;">
+        <h3>Clone Repository</h3>
+        <div class="cmd">git clone <a href="https://github.com/DericRob/codex-structure.git">https://github.com/DericRob/codex-structure.git</a></div>
+      </div>
+
+      <div class="install-grid">
+        <div class="install-card">
+          <h3>Windows</h3>
+          <div class="step">
+            <div class="step-label">1. Create Folders</div>
+            <div class="cmd">New-Item -ItemType Directory -Force ~/.codex/launcher | Out-Null
+New-Item -ItemType Directory -Force ~/.codex/watcher | Out-Null</div>
+          </div>
+          <div class="step">
+            <div class="step-label">2. Start the Watcher</div>
+            <div class="cmd">~/.codex/watcher/start.ps1</div>
+          </div>
+          <div class="step">
+            <div class="step-label">3. Launch Codex Through AIOS</div>
+            <div class="cmd">~/.codex/launcher/start-codex.ps1</div>
+          </div>
+        </div>
+
+        <div class="install-card">
+          <h3>macOS / Linux</h3>
+          <div class="step">
+            <div class="step-label">1. Create Folders</div>
+            <div class="cmd">mkdir -p ~/.codex/launcher
+mkdir -p ~/.codex/watcher</div>
+          </div>
+          <div class="step">
+            <div class="step-label">2. Make Scripts Executable</div>
+            <div class="cmd">chmod +x ~/.codex/launcher/start-codex.sh
+chmod +x ~/.codex/watcher/*.sh ~/.codex/watcher/server.py ~/.codex/watcher/append_event.py</div>
+          </div>
+          <div class="step">
+            <div class="step-label">3. Start and Launch</div>
+            <div class="cmd">~/.codex/watcher/start.sh
+~/.codex/launcher/start-codex.sh</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="copy-map">
+        <div class="copy-item"><span>templates/watcher/server.py</span><span class="arrow">→</span><span>~/.codex/watcher/server.py</span></div>
+        <div class="copy-item"><span>templates/watcher/dashboard.html</span><span class="arrow">→</span><span>~/.codex/watcher/dashboard.html</span></div>
+        <div class="copy-item"><span>templates/watcher/start.ps1 / start.sh</span><span class="arrow">→</span><span>~/.codex/watcher/</span></div>
+        <div class="copy-item"><span>templates/watcher/stop.ps1 / stop.sh</span><span class="arrow">→</span><span>~/.codex/watcher/</span></div>
+        <div class="copy-item"><span>templates/watcher/append_event.py</span><span class="arrow">→</span><span>~/.codex/watcher/append_event.py</span></div>
+        <div class="copy-item"><span>templates/launcher/start-codex.ps1 / start-codex.sh</span><span class="arrow">→</span><span>~/.codex/launcher/</span></div>
+        <div class="copy-item"><span>templates/docs/CODEX.md</span><span class="arrow">→</span><span>~/Documents/CODEX.md</span></div>
+        <div class="copy-item"><span>templates/config/mcp.json</span><span class="arrow">→</span><span>~/Documents/.mcp.json</span></div>
+      </div>
+      <div class="footer">Slide 11</div>
+    </section>
+
+    <section class="slide" id="slide-12">
+      <div class="kicker">Close</div>
+      <h2>Bottom Line</h2>
+      <p class="lede">AIOS is a credible, immediately understandable demo because it solves a real problem: teams want AI-assisted development to be usable on real machines without becoming invisible or chaotic.</p>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>Practical</h3>
+          <p>It improves workstation setup and daily usage today.</p>
+        </div>
+        <div class="card">
+          <h3>Observable</h3>
+          <p>It adds real visibility into Codex sessions through the watcher.</p>
+        </div>
+        <div class="card">
+          <h3>Extensible</h3>
+          <p>It naturally points to AIOSx as the next architectural move.</p>
+        </div>
+      </div>
+
+      <div class="callout">AIOS is the operational wrapper that makes AI-assisted engineering safer, more repeatable, and easier to govern on a real developer workstation.</div>
+      <div class="card" style="margin-top: 18px; max-width: 520px;">
+        <h3>Questions? Contact me:</h3>
+        <p>Deric Robinson</p>
+        <p>lwx3@cdc.gov</p>
+        <p>404.639.6022</p>
+      </div>
+      <div class="footer">Slide 12</div>
+    </section>
+
+    <section class="slide" id="slide-13">
+      <div class="kicker">References</div>
+      <h2>External References</h2>
+      <p class="lede">Outside sources most closely aligned with the basis for this project: the public AIOS ecosystem, the AIOS papers, and observability/evaluation guidance for agent systems.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>GitHub Repositories</h3>
+          <ul>
+            <li><a href="https://github.com/agiresearch/AIOS">https://github.com/agiresearch/AIOS</a></li>
+            <li><a href="https://github.com/agiresearch/Cerebrum">https://github.com/agiresearch/Cerebrum</a></li>
+            <li><a href="https://github.com/agiresearch">https://github.com/agiresearch</a></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Papers</h3>
+          <ul>
+            <li><a href="https://arxiv.org/abs/2403.16971">AIOS: LLM Agent Operating System</a></li>
+            <li><a href="https://arxiv.org/abs/2312.03815">LLM as OS, Agents as Apps: Envisioning AIOS, Agents and the AIOS-Agent Ecosystem</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 18px;">
+        <h3>Observability and Evaluation Background</h3>
+        <ul>
+          <li><a href="https://aws.amazon.com/blogs/machine-learning/ai-agents-in-enterprises-best-practices-with-amazon-bedrock-agentcore/">AI agents in enterprises: Best practices with Amazon Bedrock AgentCore</a></li>
+          <li><a href="https://danielmiessler.com/">https://danielmiessler.com/</a></li>
+        </ul>
+      </div>
+      <div class="footer">Slide 13</div>
+    </section>
+  </main>
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    let currentIndex = 0;
+
+    function updateCurrentSlide() {
+      let bestIndex = 0;
+      let bestDistance = Number.POSITIVE_INFINITY;
+      slides.forEach((slide, index) => {
+        const distance = Math.abs(slide.getBoundingClientRect().top);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIndex = index;
+        }
+      });
+      currentIndex = bestIndex;
+    }
+
+    function goToSlide(index) {
+      const bounded = Math.max(0, Math.min(slides.length - 1, index));
+      slides[bounded].scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    document.getElementById("prevSlide").addEventListener("click", () => {
+      updateCurrentSlide();
+      goToSlide(currentIndex - 1);
+    });
+
+    document.getElementById("nextSlide").addEventListener("click", () => {
+      updateCurrentSlide();
+      goToSlide(currentIndex + 1);
+    });
+
+    window.addEventListener("scroll", updateCurrentSlide, { passive: true });
+    updateCurrentSlide();
+  </script>
+</body>
+</html>
